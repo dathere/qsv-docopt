@@ -10,7 +10,7 @@ use docopt::Docopt;
 use serde::{Deserialize, de::{Deserializer, Error, Visitor}};
 
 // Write the Docopt usage string.
-const USAGE: &'static str = "
+const USAGE: &str = "
 Rust's package manager
 
 Usage:

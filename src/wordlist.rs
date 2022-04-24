@@ -29,7 +29,7 @@ mod parse;
 #[allow(dead_code)]
 mod synonym;
 
-const USAGE: &'static str = "
+const USAGE: &str = "
 Usage: docopt-wordlist [(<name> <possibles>)] ...
 
 docopt-wordlist prints a list of available flags and commands arguments for the
@@ -71,7 +71,7 @@ fn main() {
 fn run(args: Args) -> Result<(), String> {
     let mut usage = String::new();
     io::stdin().read_to_string(&mut usage).map_err(|e| e.to_string())?;
-    let parsed = Parser::new(&usage).map_err(|e| e.to_string())?;
+    let parsed = Parser::new(&usage).map_err(|e| e)?;
     let arg_possibles: HashMap<String, Vec<String>> =
         args.arg_name.iter()
                      .zip(args.arg_possibles.iter())
@@ -89,7 +89,7 @@ fn run(args: Args) -> Result<(), String> {
     for k in parsed.descs.keys() {
         if let Atom::Positional(ref arg_name) = *k {
             if let Some(choices) = arg_possibles.get(arg_name) {
-                words.extend(choices.iter().map(|s| s.clone()));
+                words.extend(choices.iter().cloned());
             }
             // If the user hasn't given choices for this positional argument,
             // then there's really nothing to complete here.

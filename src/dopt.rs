@@ -182,7 +182,7 @@ impl Docopt {
         Parser::new(usage.deref())
                .map_err(Usage)
                .map(|p| Docopt {
-                   p: p,
+                   p,
                    argv: None,
                    options_first: false,
                    help: true,
@@ -406,7 +406,7 @@ impl ArgvMap {
     /// Finds the value corresponding to `key` and calls `as_vec()` on it.
     /// If the key does not exist, `vec!()` is returned.
     pub fn get_vec(&self, key: &str) -> Vec<&str> {
-        self.find(key).map(|v| v.as_vec()).unwrap_or(vec!())
+        self.find(key).map(|v| v.as_vec()).unwrap_or_default()
     }
 
     /// Return the raw value corresponding to some `key`.
@@ -434,7 +434,7 @@ impl ArgvMap {
             );
         }
         fn sanitize(name: &str) -> String {
-            name.replace("-", "_")
+            name.replace('-', "_")
         }
 
         RE.replace(name, |cap: &Captures<'_>| {
@@ -474,7 +474,7 @@ impl ArgvMap {
             static ref CMD: Regex = regex!(r"^cmd_");
         }
         fn desanitize(name: &str) -> String {
-            name.replace("_", "-")
+            name.replace('_', "-")
         }
         let name =
             if field.starts_with("flag_") {
@@ -516,7 +516,7 @@ impl fmt::Debug for ArgvMap {
         keys.sort();
         let mut first = true;
         for &k in &keys {
-            if !first { write!(f, "\n")?; } else { first = false; }
+            if !first { writeln!(f)?; } else { first = false; }
             match reverse.get(&k) {
                 None => {
                     write!(f, "{} => {:?}", k, self.map.get(k))?
@@ -657,7 +657,7 @@ impl<'de> Deserializer<'de> {
         self.stack
             .push(DeserializerItem {
                       key: key.clone(),
-                      struct_field: struct_field,
+                      struct_field,
                       val: self.vals.find(&*key).cloned(),
                   });
     }
@@ -870,7 +870,7 @@ impl<'a, 'de> ::serde::Deserializer<'de> for &'a mut Deserializer<'de> {
         unimplemented!()
     }
 
-    fn deserialize_seq<V>(mut self, visitor: V) -> Result<V::Value>
+    fn deserialize_seq<V>(self, visitor: V) -> Result<V::Value>
         where V: de::Visitor<'de>
     {
         let (key, struct_field, val) = match self.stack.pop() {
@@ -883,21 +883,21 @@ impl<'a, 'de> ::serde::Deserializer<'de> for &'a mut Deserializer<'de> {
             self.stack
                 .push(DeserializerItem {
                           key: key.clone(),
-                          struct_field: struct_field,
+                          struct_field,
                           val: Some(Plain(Some((*val).into()))),
                       });
         }
-        visitor.visit_seq(SeqDeserializer::new(&mut self, vals.len()))
+        visitor.visit_seq(SeqDeserializer::new(self, vals.len()))
     }
 
-    fn deserialize_struct<V>(mut self,
+    fn deserialize_struct<V>(self,
                              _: &str,
                              fields: &'static [&'static str],
                              visitor: V)
                              -> Result<V::Value>
         where V: de::Visitor<'de>
     {
-        visitor.visit_seq(StructDeserializer::new(&mut self, fields))
+        visitor.visit_seq(StructDeserializer::new(self, fields))
     }
 
     fn deserialize_enum<V>(self, _name: &str, variants: &[&str], visitor: V) -> Result<V::Value>
@@ -936,7 +936,7 @@ struct SeqDeserializer<'a, 'de: 'a> {
 
 impl<'a, 'de> SeqDeserializer<'a, 'de> {
     fn new(de: &'a mut Deserializer<'de>, len: usize) -> Self {
-        SeqDeserializer { de: de, len: len }
+        SeqDeserializer { de, len }
     }
 }
 
@@ -954,7 +954,7 @@ impl<'a, 'de> de::SeqAccess<'de> for SeqDeserializer<'a, 'de> {
     }
 
     fn size_hint(&self) -> Option<usize> {
-        return Some(self.len);
+        Some(self.len)
     }
 }
 
@@ -966,8 +966,8 @@ struct StructDeserializer<'a, 'de: 'a> {
 impl<'a, 'de> StructDeserializer<'a, 'de> {
     fn new(de: &'a mut Deserializer<'de>, fields: &'static [&'static str]) -> Self {
         StructDeserializer {
-            de: de,
-            fields: fields,
+            de,
+            fields,
         }
     }
 }
@@ -978,7 +978,7 @@ impl<'a, 'de> de::SeqAccess<'de> for StructDeserializer<'a, 'de> {
     fn next_element_seed<T>(&mut self, seed: T) -> Result<Option<T::Value>>
         where T: de::DeserializeSeed<'de>
     {
-        if self.fields.len() == 0 {
+        if self.fields.is_empty() {
             return Ok(None);
         }
         self.de.push(self.fields[0]);
@@ -987,6 +987,6 @@ impl<'a, 'de> de::SeqAccess<'de> for StructDeserializer<'a, 'de> {
     }
 
     fn size_hint(&self) -> Option<usize> {
-        return Some(self.fields.len());
+        Some(self.fields.len())
     }
 }

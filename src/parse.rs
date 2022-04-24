@@ -45,7 +45,7 @@ use std::cmp::Ordering;
 use std::fmt;
 
 use lazy_static::lazy_static;
-use regex;
+
 use regex::Regex;
 use strsim::levenshtein;
 
@@ -97,7 +97,7 @@ impl Parser {
 
     pub fn parse_argv(&self, argv: Vec<String>, options_first: bool)
                          -> Result<Argv<'_>, String> {
-        Argv::new(self, argv, options_first)
+        Argv::new(self, &argv, options_first)
     }
 }
 
@@ -370,7 +370,7 @@ struct PatParser<'a> {
 impl<'a> PatParser<'a> {
     fn new(dopt: &'a mut Parser, pat: &str) -> PatParser<'a> {
         PatParser {
-            dopt: dopt,
+            dopt,
             tokens: pattern_tokens(pat),
             curi: 0,
             expecting: vec!(),
@@ -681,10 +681,8 @@ impl Pattern {
                 Repeat(ref mut p) => add(&mut **p, all_atoms, par),
                 PatAtom(_) => {}
                 Optional(ref mut ps) => {
-                    if !ps.is_empty() {
-                        for p in ps.iter_mut() { add(p, all_atoms, par) }
-                    } else {
-                        for atom in par.options_atoms().into_iter() {
+                    if ps.is_empty() {
+                        for atom in par.options_atoms() {
                             if !all_atoms.contains(&atom) {
                                 if par.has_repeat(&atom) {
                                     ps.push(Pattern::repeat(PatAtom(atom)));
@@ -693,6 +691,8 @@ impl Pattern {
                                 }
                             }
                         }
+                    } else {
+                        for p in ps.iter_mut() { add(p, all_atoms, par) }
                     }
                 }
             }
@@ -732,7 +732,7 @@ impl Pattern {
                     for p in ps.iter() {
                         let mut isolated = fresh.clone();
                         dotag(p, rep, map, &mut isolated);
-                        for a in isolated.into_iter() {
+                        for a in isolated {
                             seen.insert(a);
                         }
                     }
@@ -774,7 +774,7 @@ impl Atom {
         } else if Atom::is_long(s) {
             Long(s[2..].into())
         } else if Atom::is_arg(s) {
-            if s.starts_with("<") && s.ends_with(">") {
+            if s.starts_with('<') && s.ends_with('>') {
                 Positional(s[1..s.len()-1].into())
             } else {
                 Positional(s.into())
@@ -851,7 +851,7 @@ impl fmt::Display for Atom {
             Long(ref s) => write!(f, "--{}", s),
             Command(ref s) => write!(f, "{}", s),
             Positional(ref s) => {
-                if s.chars().all(|c| c.is_uppercase()) {
+                if s.chars().all(char::is_uppercase) {
                     write!(f, "{}", s)
                 } else {
                     write!(f, "<{}>", s)
@@ -864,7 +864,7 @@ impl fmt::Display for Atom {
 
 impl Options {
     fn new(rep: bool, arg: Argument) -> Options {
-        Options { repeats: rep, arg: arg, is_desc: false, }
+        Options { repeats: rep, arg, is_desc: false, }
     }
 }
 
@@ -902,16 +902,16 @@ struct ArgvToken {
 }
 
 impl<'a> Argv<'a> {
-    fn new(dopt: &'a Parser, argv: Vec<String>, options_first: bool)
+    fn new(dopt: &'a Parser, argv: &[String], options_first: bool)
           -> Result<Argv<'a>, String> {
         let mut a = Argv {
             positional: vec!(),
             flags: vec!(),
             counts: HashMap::new(),
-            dopt: dopt,
-            argv: argv.iter().cloned().collect(),
+            dopt,
+            argv: argv.to_vec(),
             curi: 0,
-            options_first: options_first,
+            options_first,
         };
         a.parse()?;
         for flag in &a.flags {
@@ -940,9 +940,7 @@ impl<'a> Argv<'a> {
                     if !self.dopt.descs.contains_key(&tok.atom) {
                         err!("Unknown flag: '{}'", &tok.atom);
                     }
-                    if !self.dopt.has_arg(&tok.atom) {
-                        self.flags.push(tok);
-                    } else {
+                    if self.dopt.has_arg(&tok.atom) {
                         let rest = &stacked[i+1..];
                         tok.arg = Some(
                             if rest.is_empty() {
@@ -956,6 +954,8 @@ impl<'a> Argv<'a> {
                         // We've either produced an error or gobbled up the
                         // rest of these stacked short flags, so stop.
                         break
+                    } else {
+                        self.flags.push(tok);
                     }
                 }
             } else if do_flags && Atom::is_long_argv(self.cur()) {
@@ -972,21 +972,19 @@ impl<'a> Argv<'a> {
                                                    &atom))?;
                     arg = Some(self.cur().into());
                 }
-                self.flags.push(ArgvToken { atom: atom, arg: arg });
+                self.flags.push(ArgvToken { atom, arg });
+            } else if !seen_double_dash && self.cur() == "--" {
+                seen_double_dash = true;
             } else {
-                if !seen_double_dash && self.cur() == "--" {
-                    seen_double_dash = true;
-                } else {
-                    // Yup, we *always* insert a positional argument, which
-                    // means we completely neglect `Command` here.
-                    // This is because we can't tell whether something is a
-                    // `command` or not until we start pattern matching.
-                    let tok = ArgvToken {
-                        atom: Positional(self.cur().into()),
-                        arg: None,
-                    };
-                    self.positional.push(tok);
-                }
+                // Yup, we *always* insert a positional argument, which
+                // means we completely neglect `Command` here.
+                // This is because we can't tell whether something is a
+                // `command` or not until we start pattern matching.
+                let tok = ArgvToken {
+                    atom: Positional(self.cur().into()),
+                    arg: None,
+                };
+                self.positional.push(tok);
             }
             self.next()
         }
@@ -1180,7 +1178,7 @@ impl MState {
 impl<'a, 'b> Matcher<'a, 'b> {
     fn matches(argv: &'a Argv<'_>, pat: &Pattern)
               -> Option<SynonymMap<String, Value>> {
-        let m = Matcher { argv: argv };
+        let m = Matcher { argv };
         let init = MState {
             argvi: 0,
             counts: argv.counts.clone(),
@@ -1300,7 +1298,7 @@ impl<'a, 'b> Matcher<'a, 'b> {
                     Some(p) => states.extend(self.states(p, init).into_iter()),
                 }
                 for p in iter {
-                    for s in states.into_iter() {
+                    for s in states {
                         next.extend(self.states(p, &s).into_iter());
                     }
                     states = vec!();
@@ -1386,7 +1384,7 @@ impl<'a, 'b> Matcher<'a, 'b> {
                     }
                     grouped_states
                         .into_iter()
-                        .flat_map(|ss| ss.into_iter())
+                        .flat_map(std::iter::IntoIterator::into_iter)
                         .collect::<Vec<MState>>()
                 }
             }}
@@ -1426,7 +1424,7 @@ impl<'a, 'b> Matcher<'a, 'b> {
             states.push(base.clone());
         } else {
             let (pat, rest) = (*pats.first().unwrap(), &pats[1..]);
-            for s in self.states(pat, base).into_iter() {
+            for s in self.states(pat, base) {
                 self.all_option_states(&s, states, rest);
             }
             // Order is important here! This must come after the loop above

@@ -8,7 +8,7 @@ use serde::Deserialize;
 // explicitly.
 //
 // This is unfortunate.
-const USAGE: &'static str = "
+const USAGE: &str = "
 Usage: cp [options] [-v | -vv | -vvv] <source> <dest>
        cp [options] [-v | -vv | -vvv] <source>... <dir>
 
