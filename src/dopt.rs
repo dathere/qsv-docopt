@@ -584,7 +584,7 @@ impl Value {
     /// Lists correspond to its length.
     pub fn as_count(&self) -> u64 {
         match *self {
-            Switch(b) => if b { 1 } else { 0 },
+            Switch(b) => u64::from(b), // if b { 1 } else { 0 },
             Counted(n) => n,
             Plain(None) => 0,
             Plain(Some(_)) => 1,
