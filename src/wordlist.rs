@@ -63,7 +63,7 @@ fn main() {
     let args: Args = Docopt::new(USAGE)
         .and_then(|d| d.deserialize())
         .unwrap_or_else(|e| e.exit());
-    match run(args) {
+    match run(&args) {
         Ok(_) => {}
         Err(err) => {
             write!(&mut io::stderr(), "{err}").unwrap();
@@ -72,7 +72,7 @@ fn main() {
     }
 }
 
-fn run(args: Args) -> Result<(), String> {
+fn run(args: &Args) -> Result<(), String> {
     let mut usage = String::new();
     io::stdin()
         .read_to_string(&mut usage)
