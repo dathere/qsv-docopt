@@ -904,14 +904,8 @@ impl<'a, 'de> ::serde::Deserializer<'de> for &'a mut Deserializer<'de> {
         where V: de::Visitor<'de>
     {
         let v = self.pop_val()?.as_str().to_lowercase();
-        let s = match variants.iter().find(|&n| n.to_lowercase() == v) {
-            Some(s) => s,
-            None => {
-                derr!("Could not match '{}' with any of \
-                           the allowed variants: {:?}",
-                      v,
-                      variants)
-            }
+        let Some(s) = variants.iter().find(|&n| n.to_lowercase() == v) else {
+            derr!("Could not match '{v}' with any of the allowed variants: {variants:?}")
         };
         visitor.visit_enum(s.into_deserializer())
     }
