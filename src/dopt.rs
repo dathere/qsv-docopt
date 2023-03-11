@@ -179,7 +179,7 @@ impl Docopt {
     /// is returned.
     pub fn new<S>(usage: S) -> Result<Docopt>
             where S: ::std::ops::Deref<Target=str> {
-        Parser::new(usage.deref())
+        Parser::new(&usage)
                .map_err(Usage)
                .map(|p| Docopt {
                    p,
