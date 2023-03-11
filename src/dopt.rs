@@ -516,7 +516,7 @@ impl fmt::Debug for ArgvMap {
         keys.sort();
         let mut first = true;
         for &k in &keys {
-            if !first { writeln!(f)?; } else { first = false; }
+            if first { first = false; } else { writeln!(f)?; }
             match reverse.get(&k) {
                 None => {
                     write!(f, "{} => {:?}", k, self.map.get(k))?
