@@ -228,7 +228,7 @@ impl Parser {
                         s
                     )
                 }
-                short = s.into()
+                short = s.into();
             }
             if !l.is_empty() {
                 if !long.is_empty() {
@@ -239,7 +239,7 @@ impl Parser {
                         l
                     )
                 }
-                long = l.into()
+                long = l.into();
             }
             if let Some(arg) = flags.name("arg").map(|m| m.as_str()) {
                 if !arg.is_empty() {
