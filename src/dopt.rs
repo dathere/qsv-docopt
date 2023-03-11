@@ -113,7 +113,7 @@ impl Error {
             werr!("{}\n", self);
             ::std::process::exit(1)
         } else {
-            let _ = writeln!(&mut io::stdout(), "{}", self);
+            let _ = writeln!(&mut io::stdout(), "{self}");
             ::std::process::exit(0)
         }
     }
@@ -127,9 +127,9 @@ impl fmt::Display for Error {
             WithProgramUsage(ref other, ref usage) => {
                 let other = other.to_string();
                 if other.is_empty() {
-                    write!(f, "{}", usage)
+                    write!(f, "{usage}")
                 } else {
-                    write!(f, "{}\n\n{}", other, usage)
+                    write!(f, "{other}\n\n{usage}")
                 }
             }
             Help => write!(f, ""),
@@ -137,7 +137,7 @@ impl fmt::Display for Error {
             Usage(ref s) |
             Argv(ref s) |
             Deserialize(ref s) |
-            Version(ref s) => write!(f, "{}", s),
+            Version(ref s) => write!(f, "{s}"),
         }
     }
 }
