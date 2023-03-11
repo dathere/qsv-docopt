@@ -1,11 +1,11 @@
 [package]
-name = "docopt"
+name = "qsv_docopt"
 version = "1.1.1"  #:version
-authors = ["Andrew Gallant <jamslam@gmail.com>"]
+authors = ["Andrew Gallant <jamslam@gmail.com>", "Joel Natividad <joel@datHere.com>"]
 description = "Command line argument parsing."
-documentation = "http://burntsushi.net/rustdoc/docopt/"
-homepage = "https://github.com/docopt/docopt.rs"
-repository = "https://github.com/docopt/docopt.rs"
+documentation = "https://docs.rs/qsv_docopt"
+homepage = "https://github.com/jqnatividad/docopt.rs"
+repository = "https://github.com/jqnatividad/docopt.rs"
 readme = "README.md"
 keywords = ["docopt", "argument", "command", "argv"]
 categories = ["command-line-interface"]
@@ -14,10 +14,10 @@ exclude = ["/.travis.yml", "/Makefile", "/ctags.rust", "/scripts/*", "/session.v
 edition = "2021"
 
 [lib]
-name = "docopt"
+name = "qsv_docopt"
 
 [[bin]]
-name = "docopt-wordlist"
+name = "qsv-docopt-wordlist"
 path = "src/wordlist.rs"
 doc = false
 test = false
