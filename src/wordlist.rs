@@ -62,7 +62,7 @@ fn main() {
     match run(args) {
         Ok(_) => {},
         Err(err) => {
-            write!(&mut io::stderr(), "{}", err).unwrap();
+            write!(&mut io::stderr(), "{err}").unwrap();
             ::std::process::exit(1)
         }
     }

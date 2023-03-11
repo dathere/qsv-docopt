@@ -456,7 +456,7 @@ impl ArgvMap {
                 } else if !cmd.is_empty() {
                     ("cmd_", cmd)
                 } else {
-                    panic!("Unknown ArgvMap key: '{}'", name)
+                    panic!("Unknown ArgvMap key: '{name}'")
                 };
             let mut prefix = prefix.to_owned();
             prefix.push_str(&sanitize(name));
@@ -496,7 +496,7 @@ impl ArgvMap {
             } else if field.starts_with("cmd_") {
                 CMD.replace(field, "").into_owned()
             } else {
-                panic!("Unrecognized struct field: '{}'", field)
+                panic!("Unrecognized struct field: '{field}'")
             };
         desanitize(&name)
     }

@@ -279,8 +279,7 @@ impl Parser {
         let opts =
             self.descs
             .find_mut(last_atom)
-            .unwrap_or_else(|| panic!("BUG: last opt desc key ('{:?}') is invalid.",
-                                       last_atom));
+            .unwrap_or_else(|| panic!("BUG: last opt desc key ('{last_atom:?}') is invalid."));
         match opts.arg {
             One(None) => {}, // OK
             Zero =>
@@ -342,19 +341,19 @@ impl fmt::Debug for Parser {
         writeln!(f, "Option descriptions:")?;
         let keys = sorted(self.descs.keys().collect());
         for &k in &keys {
-            writeln!(f, "  '{}' => {:?}", k, self.descs.get(k))?;
+            writeln!(f, "  '{k}' => {:?}", self.descs.get(k))?;
         }
 
         writeln!(f, "Synonyms:")?;
         let keys: Vec<(&Atom, &Atom)> =
             sorted(self.descs.synonyms().collect());
         for &(from, to) in &keys {
-            writeln!(f, "  {:?} => {:?}", from, to)?;
+            writeln!(f, "  {from:?} => {to:?}")?;
         }
 
         writeln!(f, "Usages:")?;
         for pat in &self.usages {
-            writeln!(f, "  {:?}", pat)?;
+            writeln!(f, "  {pat:?}")?;
         }
         writeln!(f, "=====")
     }
@@ -555,7 +554,7 @@ impl<'a> PatParser<'a> {
     }
 
     fn next_flag_arg(&mut self, atom: &Atom) -> Result<(), String> {
-        self.next_noeof(&format!("argument for flag '{}'", atom))?;
+        self.next_noeof(&format!("argument for flag '{atom}'"))?;
         self.errif_invalid_flag_arg(atom, self.cur())
     }
 
@@ -783,7 +782,7 @@ impl Atom {
         } else if Atom::is_cmd(s) {
             Command(s.into())
         } else {
-            panic!("Unknown atom string: '{}'", s)
+            panic!("Unknown atom string: '{s}'")
         }
     }
 
@@ -848,14 +847,14 @@ impl PartialOrd for Atom {
 impl fmt::Display for Atom {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match *self {
-            Short(c) => write!(f, "-{}", c),
-            Long(ref s) => write!(f, "--{}", s),
-            Command(ref s) => write!(f, "{}", s),
+            Short(c) => write!(f, "-{c}"),
+            Long(ref s) => write!(f, "--{s}"),
+            Command(ref s) => write!(f, "{s}"),
             Positional(ref s) => {
                 if s.chars().all(char::is_uppercase) {
-                    write!(f, "{}", s)
+                    write!(f, "{s}")
                 } else {
-                    write!(f, "<{}>", s)
+                    write!(f, "<{s}>")
                 }
             }
         }
@@ -1038,7 +1037,7 @@ impl<'a> Argv<'a> {
         }
     }
     fn next_arg(&mut self, atom: &Atom) -> Result<&str, String> {
-        let expected = format!("argument for flag '{}'", atom);
+        let expected = format!("argument for flag '{atom}'");
         self.next_noeof(&expected)?;
         Ok(self.cur())
     }
@@ -1111,7 +1110,7 @@ impl MState {
     fn add_value(&mut self, opts: &Options,
                  spec: &Atom, atom: &Atom, arg: &Option<String>) -> bool {
         assert!(opts.arg.has_arg() == arg.is_some(),
-                "'{:?}' should have an argument but doesn't", atom);
+                "'{atom:?}' should have an argument but doesn't");
         match *atom {
             Short(_) | Long(_) => {
                 self.fill_value(spec.clone(), opts.repeats, arg.clone())
