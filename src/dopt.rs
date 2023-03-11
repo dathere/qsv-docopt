@@ -519,10 +519,10 @@ impl fmt::Debug for ArgvMap {
             if first { first = false; } else { writeln!(f)?; }
             match reverse.get(&k) {
                 None => {
-                    write!(f, "{} => {:?}", k, self.map.get(k))?
+                    write!(f, "{k} => {:?}", self.map.get(k))?
                 }
                 Some(s) => {
-                    write!(f, "{}, {} => {:?}", s, k, self.map.get(k))?
+                    write!(f, "{s}, {k} => {:?}", self.map.get(k))?
                 }
             }
         }
