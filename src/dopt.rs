@@ -820,7 +820,7 @@ impl<'a, 'de> ::serde::Deserializer<'de> for &'a mut Deserializer<'de> {
     {
         let is_some = match self.stack.last() {
             None => derr!("Could not deserialize value into unknown key."),
-            Some(it) => it.val.as_ref().map_or(false, |v| v.as_bool()),
+            Some(it) => it.val.as_ref().map_or(false, Value::as_bool),
         };
         if is_some {
             visitor.visit_some(self)
