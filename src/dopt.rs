@@ -200,7 +200,7 @@ impl Docopt {
     pub fn deserialize<'a, 'de: 'a, D>(&'a self) -> Result<D>
         where D: de::Deserialize<'de>
     {
-        self.parse().and_then(|vals| vals.deserialize())
+        self.parse().and_then(dopt::ArgvMap::deserialize)
     }
 
     /// Parse command line arguments and try to match them against a usage
