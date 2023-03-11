@@ -34,7 +34,7 @@ use crate::cap_or_empty;
 /// in that process. This can be achieved like so:
 ///
 /// ```no_run
-/// use docopt::Docopt;
+/// use qsv_docopt::Docopt;
 ///
 /// const USAGE: &'static str = "
 /// Usage: ...
@@ -346,7 +346,7 @@ impl ArgvMap {
     /// # fn main() {
     /// use serde::Deserialize;
     ///
-    /// use docopt::Docopt;
+    /// use qsv_docopt::Docopt;
     ///
     /// const USAGE: &'static str = "
     /// Usage: cargo [options] (build | test)
@@ -623,14 +623,14 @@ impl Value {
 /// and produces a deserializable value:
 ///
 /// ```rust
-/// # extern crate docopt;
+/// # extern crate qsv_docopt;
 /// extern crate serde;
 /// # fn main() {
-/// use docopt::Docopt;
+/// use qsv_docopt::Docopt;
 /// use serde::de::Deserialize;
 ///
 /// fn deserialize<'de, D: Deserialize<'de>>(usage: &str, argv: &[&str])
-///                         -> Result<D, docopt::Error> {
+///                         -> Result<D, qsv_docopt::Error> {
 ///     Docopt::new(usage)
 ///            .and_then(|d| d.argv(argv.iter()).deserialize())
 /// }

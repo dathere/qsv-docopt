@@ -9,7 +9,7 @@
 //! usage string. Here's a simple example:
 //!
 //! ```rust
-//! use docopt::Docopt;
+//! use qsv_docopt::Docopt;
 //!
 //! // Write the Docopt usage string.
 //! const USAGE: &'static str = "
@@ -47,7 +47,7 @@
 //!
 //! ```rust
 //! # fn main() {
-//! use docopt::Docopt;
+//! use qsv_docopt::Docopt;
 //! use serde::Deserialize;
 //!
 //! // Write the Docopt usage string.
@@ -93,7 +93,7 @@
 //!
 //! use serde::Deserialize;
 //!
-//! use docopt::Docopt;
+//! use qsv_docopt::Docopt;
 //!
 //! // Write the Docopt usage string.
 //! const USAGE: &'static str = "
@@ -180,8 +180,8 @@
 //! # }
 //! ```
 
-#![crate_name = "docopt"]
-#![doc(html_root_url = "http://burntsushi.net/rustdoc/docopt")]
+#![crate_name = "qsv_docopt"]
+// #![doc(html_root_url = "http://burntsushi.net/rustdoc/docopt")]
 #![deny(missing_docs)]
 
 pub use crate::dopt::{ArgvMap, Deserializer, Docopt, Error, Value};
