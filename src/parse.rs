@@ -686,7 +686,7 @@ impl Pattern {
             match *pat {
                 Alternates(ref mut ps) | Sequence(ref mut ps) => {
                     for p in ps.iter_mut() {
-                        add(p, all_atoms, par)
+                        add(p, all_atoms, par);
                     }
                 }
                 Repeat(ref mut p) => add(p, all_atoms, par),
@@ -704,7 +704,7 @@ impl Pattern {
                         }
                     } else {
                         for p in ps.iter_mut() {
-                            add(p, all_atoms, par)
+                            add(p, all_atoms, par);
                         }
                     }
                 }
@@ -719,7 +719,7 @@ impl Pattern {
             match *pat {
                 Alternates(ref ps) | Sequence(ref ps) | Optional(ref ps) => {
                     for p in ps.iter() {
-                        all_atoms(p, set)
+                        all_atoms(p, set);
                     }
                 }
                 Repeat(ref p) => all_atoms(p, set),
@@ -758,12 +758,12 @@ impl Pattern {
                 }
                 Sequence(ref ps) => {
                     for p in ps.iter() {
-                        dotag(p, rep, map, seen)
+                        dotag(p, rep, map, seen);
                     }
                 }
                 Optional(ref ps) => {
                     for p in ps.iter() {
-                        dotag(p, rep, map, seen)
+                        dotag(p, rep, map, seen);
                     }
                 }
                 Repeat(ref p) => dotag(p, true, map, seen),
@@ -1009,7 +1009,7 @@ impl<'a> Argv<'a> {
                 };
                 self.positional.push(tok);
             }
-            self.next()
+            self.next();
         }
         Ok(())
     }
@@ -1058,7 +1058,7 @@ impl<'a> Argv<'a> {
     }
     fn next(&mut self) {
         if self.curi < self.argv.len() {
-            self.curi += 1
+            self.curi += 1;
         }
     }
     fn next_arg(&mut self, atom: &Atom) -> Result<&str, String> {
