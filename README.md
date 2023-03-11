@@ -1,34 +1,28 @@
 # qsv_docopt
 
-This crate is primarily maintained for the qsv project as its been optimized to
+This crate is primarily maintained for the [qsv](https://github.com/jqnatividad/qsv) project as its been optimized to
 take advantage of the self-documenting nature of [docopt](http://docopt.org/),
-which [clap](http://docs.rs/clap/) or [structopt](http://docs.rs/structopt/)
-does not provide.
+which neither [clap](http://docs.rs/clap/) nor [structopt](http://docs.rs/structopt/)
+can provide.
 
 As the [docopt.rs](https://github.com/docopt/docopt.rs) project is no longer maintained,
-this crate will be updated as necessary to ensure qsv uses the latest
-features/innovations of Rust with this qsv-optimized version of docopt.
+this crate will be updated to ensure qsv uses the latest features and innovations of Rust
+with this qsv-optimized version of docopt.
 
-docopt
-======
+------------
 
 Docopt for Rust with automatic type based decoding (i.e., data validation).
 This implementation conforms to the
 [official description of Docopt](http://docopt.org/) and
 [passes its test suite](https://github.com/docopt/docopt/pull/201).
 
-[![Build status](https://api.travis-ci.org/docopt/docopt.rs.svg)](https://travis-ci.org/docopt/docopt.rs)
-[![](http://meritbadge.herokuapp.com/docopt)](https://crates.io/crates/docopt)
-
 Dual-licensed under MIT or the [UNLICENSE](http://unlicense.org).
 
-
-### Documentation
+## Documentation
 
 https://docs.rs/qsv_docopt
 
-
-### Installation
+## Installation
 
 This crate is fully compatible with Cargo. Just add it to your `Cargo.toml`:
 
@@ -38,8 +32,7 @@ qsv_docopt = "1"
 serde = { version = "1", features = ["derive"] }
 ```
 
-
-### Quick example
+## Quick example
 
 Here is a full working example. Notice that you can specify the types of each
 of the named values in the Docopt usage string. Values will be automatically
@@ -87,8 +80,7 @@ fn main() {
 }
 ```
 
-
-### Struct field name mapping
+## Struct field name mapping
 
 The field names of the struct map like this:
 
@@ -101,8 +93,7 @@ FILE          => arg_FILE
 build         => cmd_build
 ```
 
-
-### Traditional Docopt API
+## Traditional Docopt API
 
 The reference implementation of Docopt returns a Python dictionary with names
 like `<arg>` or `--flag`. If you prefer this access pattern, then you can use
@@ -147,7 +138,7 @@ fn main() {
 }
 ```
 
-### Tab completion support
+## Tab completion support
 
 This particular implementation bundles a command called `docopt-wordlist` that
 can be used to automate tab completion. This repository also collects some
