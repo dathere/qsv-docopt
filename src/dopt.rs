@@ -481,7 +481,7 @@ impl ArgvMap {
                 let name = FLAG.replace(field, "");
                 let mut pre_name = (if name.len() == 1 { "-" } else { "--" })
                                    .to_owned();
-                pre_name.push_str(&*name);
+                pre_name.push_str(&name);
                 pre_name
             } else if field.starts_with("arg_") {
                 let name = ARG.replace(field, "").into_owned();
@@ -489,7 +489,7 @@ impl ArgvMap {
                     name
                 } else {
                     let mut pre_name = "<".to_owned();
-                    pre_name.push_str(&*name);
+                    pre_name.push_str(&name);
                     pre_name.push('>');
                     pre_name
                 }
@@ -498,7 +498,7 @@ impl ArgvMap {
             } else {
                 panic!("Unrecognized struct field: '{}'", field)
             };
-        desanitize(&*name)
+        desanitize(&name)
     }
 }
 
@@ -598,7 +598,7 @@ impl Value {
     pub fn as_str(&self) -> &str {
         match *self {
             Switch(_) | Counted(_) | Plain(None) | List(_) => "",
-            Plain(Some(ref s)) => &**s,
+            Plain(Some(ref s)) => s,
         }
     }
 
@@ -658,7 +658,7 @@ impl<'de> Deserializer<'de> {
             .push(DeserializerItem {
                       key: key.clone(),
                       struct_field,
-                      val: self.vals.find(&*key).cloned(),
+                      val: self.vals.find(&key).cloned(),
                   });
     }
 

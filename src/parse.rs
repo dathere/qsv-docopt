@@ -164,7 +164,7 @@ impl Parser {
         let mprog = format!(
             "^(?:{})?\\s*(.*?)\\s*$",
             regex::escape(cap_or_empty(&caps, "prog")));
-        let pats = Regex::new(&*mprog).unwrap();
+        let pats = Regex::new(&mprog).unwrap();
 
         if cap_or_empty(&caps, "pats").is_empty() {
             let pattern = PatParser::new(self, "").parse()?;
@@ -279,7 +279,7 @@ impl Parser {
         let opts =
             self.descs
             .find_mut(last_atom)
-            .expect(&*format!("BUG: last opt desc key ('{:?}') is invalid.",
+            .expect(&format!("BUG: last opt desc key ('{:?}') is invalid.",
                               last_atom));
         match opts.arg {
             One(None) => {}, // OK
@@ -555,7 +555,7 @@ impl<'a> PatParser<'a> {
     }
 
     fn next_flag_arg(&mut self, atom: &Atom) -> Result<(), String> {
-        self.next_noeof(&*format!("argument for flag '{}'", atom))?;
+        self.next_noeof(&format!("argument for flag '{}'", atom))?;
         self.errif_invalid_flag_arg(atom, self.cur())
     }
 
@@ -622,7 +622,7 @@ impl<'a> PatParser<'a> {
         Ok(())
     }
     fn cur(&self) -> &str {
-        &*self.tokens[self.curi]
+        &self.tokens[self.curi]
     }
     fn atis(&self, offset: usize, is: &str) -> bool {
         let i = self.curi + offset;
@@ -678,7 +678,7 @@ impl Pattern {
                 Alternates(ref mut ps) | Sequence(ref mut ps) => {
                     for p in ps.iter_mut() { add(p, all_atoms, par) }
                 }
-                Repeat(ref mut p) => add(&mut **p, all_atoms, par),
+                Repeat(ref mut p) => add(p, all_atoms, par),
                 PatAtom(_) => {}
                 Optional(ref mut ps) => {
                     if ps.is_empty() {
@@ -707,7 +707,7 @@ impl Pattern {
                 Alternates(ref ps) | Sequence(ref ps) | Optional(ref ps) => {
                     for p in ps.iter() { all_atoms(p, set) }
                 }
-                Repeat(ref p) => all_atoms(&**p, set),
+                Repeat(ref p) => all_atoms(p, set),
                 PatAtom(ref a) => { set.insert(a.clone()); }
             }
         }
@@ -747,7 +747,7 @@ impl Pattern {
                         dotag(p, rep, map, seen)
                     }
                 }
-                Repeat(ref p) => dotag(&**p, true, map, seen),
+                Repeat(ref p) => dotag(p, true, map, seen),
                 PatAtom(ref atom) => {
                     let opt = map.find_mut(atom).expect("bug: no atom found");
                     opt.repeats = opt.repeats || rep || seen.contains(atom);
@@ -836,9 +836,9 @@ impl PartialOrd for Atom {
     fn partial_cmp(&self, other: &Atom) -> Option<Ordering> {
         match (self, other) {
             (&Short(c1), &Short(c2)) => c1.partial_cmp(&c2),
-            (&Long(ref s1), &Long(ref s2)) => s1.partial_cmp(s2),
-            (&Command(ref s1), &Command(ref s2)) => s1.partial_cmp(s2),
-            (&Positional(ref s1), &Positional(ref s2)) => s1.partial_cmp(s2),
+            (Long(s1), Long(s2)) => s1.partial_cmp(s2),
+            (Command(s1), Command(s2)) => s1.partial_cmp(s2),
+            (Positional(s1), Positional(s2)) => s1.partial_cmp(s2),
             (a1, a2) => a1.type_as_usize().partial_cmp(&a2.type_as_usize()),
         }
     }
@@ -968,7 +968,7 @@ impl<'a> Argv<'a> {
                     err!("Flag '{}' cannot have an argument, but found '{}'.",
                          &atom, arg.as_ref().unwrap())
                 } else if arg.is_none() && self.dopt.has_arg(&atom) {
-                    self.next_noeof(&*format!("argument for flag '{}'",
+                    self.next_noeof(&format!("argument for flag '{}'",
                                                    &atom))?;
                     arg = Some(self.cur().into());
                 }
@@ -1029,7 +1029,7 @@ impl<'a> Argv<'a> {
 
     fn cur(&self) -> &str { self.at(0) }
     fn at(&self, i: usize) -> &str {
-        &*self.argv[self.curi + i]
+        &self.argv[self.curi + i]
     }
     fn next(&mut self) {
         if self.curi < self.argv.len() {
@@ -1038,7 +1038,7 @@ impl<'a> Argv<'a> {
     }
     fn next_arg(&mut self, atom: &Atom) -> Result<&str, String> {
         let expected = format!("argument for flag '{}'", atom);
-        self.next_noeof(&*expected)?;
+        self.next_noeof(&expected)?;
         Ok(self.cur())
     }
     fn next_noeof(&mut self, expected: &str) -> Result<(), String> {
@@ -1160,7 +1160,7 @@ impl MState {
                 // how to produce `Command` values.
                 unreachable!()
             }
-            (&Command(ref n1), &Positional(ref n2)) if n1 == n2 => {
+            (Command(n1), Positional(n2)) if n1 == n2 => {
                 // Coerce a positional to a command because the pattern
                 // demands it and the positional argument matches it.
                 self.argvi += 1;
@@ -1314,7 +1314,7 @@ impl<'a, 'b> Matcher<'a, 'b> {
                     match p {
                         // Prevent exponential growth in cases like [--flag...]
                         // See https://github.com/docopt/docopt.rs/issues/195
-                        &Repeat(ref b) => match &**b {
+                        Repeat(b) => match &**b {
                             &PatAtom(ref a @ Short(_))
                             | &PatAtom(ref a @ Long(_)) => {
                                 let argv_count = self.argv.counts.get(a)
@@ -1347,13 +1347,13 @@ impl<'a, 'b> Matcher<'a, 'b> {
                     }
                 }
                 let mut states = vec!();
-                self.all_option_states(&base, &mut states, &*noflags);
+                self.all_option_states(&base, &mut states, &noflags);
                 states
             }
             Repeat(ref p) => { match &**p {
                 &PatAtom(ref a @ Short(_))
                 | &PatAtom(ref a @ Long(_)) => {
-                    let mut bases = self.states(&**p, init);
+                    let mut bases = self.states(p, init);
                     for base in &mut bases {
                         let argv_count = self.argv.counts.get(a)
                                              .map_or(0, |&x| x);
@@ -1368,12 +1368,12 @@ impl<'a, 'b> Matcher<'a, 'b> {
                     bases
                 }
                 _ => {
-                    let mut grouped_states = vec!(self.states(&**p, init));
+                    let mut grouped_states = vec!(self.states(p, init));
                     loop {
                         let mut nextss = vec!();
                         for s in grouped_states.last().unwrap().iter() {
                             nextss.extend(
-                                self.states(&**p, s)
+                                self.states(p, s)
                                     .into_iter()
                                     .filter(|snext| snext != s));
                         }
@@ -1481,7 +1481,7 @@ fn pattern_tokens(pat: &str) -> Vec<String> {
 
     let pat = NORMALIZE.replace_all(pat.trim(), " $0 ");
     let mut words = vec!();
-    for cap in WORDS.captures_iter(&*pat) {
+    for cap in WORDS.captures_iter(&pat) {
         words.push(cap[0].to_string());
     }
     words
