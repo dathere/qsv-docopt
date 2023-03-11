@@ -19,9 +19,9 @@ Options:
 
 #[derive(Debug, Deserialize)]
 struct Args {
-    arg_source: Vec<String>,
-    arg_dest: String,
-    arg_dir: String,
+    arg_source:   Vec<String>,
+    arg_dest:     String,
+    arg_dir:      String,
     flag_archive: bool,
     flag_verbose: usize,
 }

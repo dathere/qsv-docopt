@@ -1,22 +1,21 @@
-use std::collections::HashMap;
-use std::error::Error as StdError;
-use std::fmt::{self, Debug};
-use std::io::{self, Write};
-use std::str::FromStr;
-use std::result;
+use std::{
+    collections::HashMap,
+    error::Error as StdError,
+    fmt::{self, Debug},
+    io::{self, Write},
+    result,
+    str::FromStr,
+};
 
 use lazy_static::lazy_static;
 use regex::{Captures, Regex};
-use serde::de;
-use serde::de::IntoDeserializer;
+use serde::{de, de::IntoDeserializer};
 
-use crate::parse::Parser;
-use crate::synonym::SynonymMap;
-
-use self::Value::{Switch, Counted, Plain, List};
-use self::Error::{Usage, Argv, NoMatch, Deserialize, WithProgramUsage, Help, Version};
-
-use crate::cap_or_empty;
+use self::{
+    Error::{Argv, Deserialize, Help, NoMatch, Usage, Version, WithProgramUsage},
+    Value::{Counted, List, Plain, Switch},
+};
+use crate::{cap_or_empty, parse::Parser, synonym::SynonymMap};
 
 /// Represents the different types of Docopt errors.
 ///
@@ -134,10 +133,7 @@ impl fmt::Display for Error {
             }
             Help => write!(f, ""),
             NoMatch => write!(f, "Invalid arguments."),
-            Usage(ref s) |
-            Argv(ref s) |
-            Deserialize(ref s) |
-            Version(ref s) => write!(f, "{s}"),
+            Usage(ref s) | Argv(ref s) | Deserialize(ref s) | Version(ref s) => write!(f, "{s}"),
         }
     }
 }
@@ -162,11 +158,11 @@ impl de::Error for Error {
 /// This can be used to match command line arguments to produce a `ArgvMap`.
 #[derive(Clone, Debug)]
 pub struct Docopt {
-    p: Parser,
-    argv: Option<Vec<String>>,
+    p:             Parser,
+    argv:          Option<Vec<String>>,
     options_first: bool,
-    help: bool,
-    version: Option<String>,
+    help:          bool,
+    version:       Option<String>,
 }
 
 impl Docopt {
@@ -178,16 +174,16 @@ impl Docopt {
     /// If there was a problem parsing the usage string, a `Usage` error
     /// is returned.
     pub fn new<S>(usage: S) -> Result<Docopt>
-            where S: ::std::ops::Deref<Target=str> {
-        Parser::new(&usage)
-               .map_err(Usage)
-               .map(|p| Docopt {
-                   p,
-                   argv: None,
-                   options_first: false,
-                   help: true,
-                   version: None,
-                })
+    where
+        S: ::std::ops::Deref<Target = str>,
+    {
+        Parser::new(&usage).map_err(Usage).map(|p| Docopt {
+            p,
+            argv: None,
+            options_first: false,
+            help: true,
+            version: None,
+        })
     }
 
     /// Parse and deserialize the given argv.
@@ -198,7 +194,8 @@ impl Docopt {
     /// For details on how decoding works, please see the documentation for
     /// `ArgvMap`.
     pub fn deserialize<'a, 'de: 'a, D>(&'a self) -> Result<D>
-        where D: de::Deserialize<'de>
+    where
+        D: de::Deserialize<'de>,
     {
         self.parse().and_then(ArgvMap::deserialize)
     }
@@ -219,22 +216,20 @@ impl Docopt {
     /// if `--help` or `--version` is present.
     pub fn parse(&self) -> Result<ArgvMap> {
         let argv = self.argv.clone().unwrap_or_else(Docopt::get_argv);
-        let vals =
-            self.p.parse_argv(&argv, self.options_first)
-                .map_err(|s| self.err_with_usage(Argv(s)))
-                .and_then(|argv|
-                    match self.p.matches(&argv) {
-                        Some(m) => Ok(ArgvMap { map: m }),
-                        None => Err(self.err_with_usage(NoMatch)),
-                    })?;
+        let vals = self
+            .p
+            .parse_argv(&argv, self.options_first)
+            .map_err(|s| self.err_with_usage(Argv(s)))
+            .and_then(|argv| match self.p.matches(&argv) {
+                Some(m) => Ok(ArgvMap { map: m }),
+                None => Err(self.err_with_usage(NoMatch)),
+            })?;
         if self.help && vals.get_bool("--help") {
             return Err(self.err_with_full_doc(Help));
         }
         match self.version {
-            Some(ref v) if vals.get_bool("--version") => {
-                return Err(Version(v.clone()))
-            }
-            _ => {},
+            Some(ref v) if vals.get_bool("--version") => return Err(Version(v.clone())),
+            _ => {}
         }
         Ok(vals)
     }
@@ -248,9 +243,15 @@ impl Docopt {
     /// program. e.g., `["cp", "src", "dest"]` is right while `["src", "dest"]`
     /// is wrong.
     pub fn argv<I, S>(mut self, argv: I) -> Docopt
-               where I: IntoIterator<Item=S>, S: AsRef<str> {
+    where
+        I: IntoIterator<Item = S>,
+        S: AsRef<str>,
+    {
         self.argv = Some(
-            argv.into_iter().skip(1).map(|s| s.as_ref().to_owned()).collect()
+            argv.into_iter()
+                .skip(1)
+                .map(|s| s.as_ref().to_owned())
+                .collect(),
         );
         self
     }
@@ -301,13 +302,11 @@ impl Docopt {
     }
 
     fn err_with_usage(&self, e: Error) -> Error {
-        WithProgramUsage(
-            Box::new(e), self.p.usage.trim().into())
+        WithProgramUsage(Box::new(e), self.p.usage.trim().into())
     }
 
     fn err_with_full_doc(&self, e: Error) -> Error {
-        WithProgramUsage(
-            Box::new(e), self.p.full_doc.trim().into())
+        WithProgramUsage(Box::new(e), self.p.full_doc.trim().into())
     }
 
     fn get_argv() -> Vec<String> {
@@ -380,9 +379,9 @@ impl ArgvMap {
     /// the `Deserialize` trait is valid.
     pub fn deserialize<'de, T: de::Deserialize<'de>>(self) -> Result<T> {
         de::Deserialize::deserialize(&mut Deserializer {
-                                              vals: self,
-                                              stack: vec![],
-                                          })
+            vals:  self,
+            stack: vec![],
+        })
     }
 
     /// Finds the value corresponding to `key` and calls `as_bool()` on it.
@@ -438,30 +437,24 @@ impl ArgvMap {
         }
 
         RE.replace(name, |cap: &Captures<'_>| {
-            let (flag, cmd) = (
-                cap_or_empty(cap, "flag"),
-                cap_or_empty(cap, "cmd"),
-            );
-            let (argu, argb) = (
-                cap_or_empty(cap, "argu"),
-                cap_or_empty(cap, "argb"),
-            );
-            let (prefix, name) =
-                if !flag.is_empty() {
-                    ("flag_", flag)
-                } else if !argu.is_empty() {
-                    ("arg_", argu)
-                } else if !argb.is_empty() {
-                    ("arg_", argb)
-                } else if !cmd.is_empty() {
-                    ("cmd_", cmd)
-                } else {
-                    panic!("Unknown ArgvMap key: '{name}'")
-                };
+            let (flag, cmd) = (cap_or_empty(cap, "flag"), cap_or_empty(cap, "cmd"));
+            let (argu, argb) = (cap_or_empty(cap, "argu"), cap_or_empty(cap, "argb"));
+            let (prefix, name) = if !flag.is_empty() {
+                ("flag_", flag)
+            } else if !argu.is_empty() {
+                ("arg_", argu)
+            } else if !argb.is_empty() {
+                ("arg_", argb)
+            } else if !cmd.is_empty() {
+                ("cmd_", cmd)
+            } else {
+                panic!("Unknown ArgvMap key: '{name}'")
+            };
             let mut prefix = prefix.to_owned();
             prefix.push_str(&sanitize(name));
             prefix
-        }).into_owned()
+        })
+        .into_owned()
     }
 
     /// Converts a struct field name to a Docopt key.
@@ -476,28 +469,26 @@ impl ArgvMap {
         fn desanitize(name: &str) -> String {
             name.replace('_', "-")
         }
-        let name =
-            if field.starts_with("flag_") {
-                let name = FLAG.replace(field, "");
-                let mut pre_name = (if name.len() == 1 { "-" } else { "--" })
-                                   .to_owned();
-                pre_name.push_str(&name);
-                pre_name
-            } else if field.starts_with("arg_") {
-                let name = ARG.replace(field, "").into_owned();
-                if LETTERS.is_match(&name) {
-                    name
-                } else {
-                    let mut pre_name = "<".to_owned();
-                    pre_name.push_str(&name);
-                    pre_name.push('>');
-                    pre_name
-                }
-            } else if field.starts_with("cmd_") {
-                CMD.replace(field, "").into_owned()
+        let name = if field.starts_with("flag_") {
+            let name = FLAG.replace(field, "");
+            let mut pre_name = (if name.len() == 1 { "-" } else { "--" }).to_owned();
+            pre_name.push_str(&name);
+            pre_name
+        } else if field.starts_with("arg_") {
+            let name = ARG.replace(field, "").into_owned();
+            if LETTERS.is_match(&name) {
+                name
             } else {
-                panic!("Unrecognized struct field: '{field}'")
-            };
+                let mut pre_name = "<".to_owned();
+                pre_name.push_str(&name);
+                pre_name.push('>');
+                pre_name
+            }
+        } else if field.starts_with("cmd_") {
+            CMD.replace(field, "").into_owned()
+        } else {
+            panic!("Unrecognized struct field: '{field}'")
+        };
         desanitize(&name)
     }
 }
@@ -516,14 +507,14 @@ impl fmt::Debug for ArgvMap {
         keys.sort();
         let mut first = true;
         for &k in &keys {
-            if first { first = false; } else { writeln!(f)?; }
+            if first {
+                first = false;
+            } else {
+                writeln!(f)?;
+            }
             match reverse.get(&k) {
-                None => {
-                    write!(f, "{k} => {:?}", self.map.get(k))?
-                }
-                Some(s) => {
-                    write!(f, "{s}, {k} => {:?}", self.map.get(k))?
-                }
+                None => write!(f, "{k} => {:?}", self.map.get(k))?,
+                Some(s) => write!(f, "{s}, {k} => {:?}", self.map.get(k))?,
             }
         }
         Ok(())
@@ -636,15 +627,15 @@ impl Value {
 /// }
 /// # }
 pub struct Deserializer<'de> {
-    vals: ArgvMap,
+    vals:  ArgvMap,
     stack: Vec<DeserializerItem<'de>>,
 }
 
 #[derive(Debug)]
 struct DeserializerItem<'de> {
-    key: String,
+    key:          String,
     struct_field: &'de str,
-    val: Option<Value>,
+    val:          Option<Value>,
 }
 
 macro_rules! derr(
@@ -654,12 +645,11 @@ macro_rules! derr(
 impl<'de> Deserializer<'de> {
     fn push(&mut self, struct_field: &'de str) {
         let key = ArgvMap::struct_field_to_key(struct_field);
-        self.stack
-            .push(DeserializerItem {
-                      key: key.clone(),
-                      struct_field,
-                      val: self.vals.find(&key).cloned(),
-                  });
+        self.stack.push(DeserializerItem {
+            key: key.clone(),
+            struct_field,
+            val: self.vals.find(&key).cloned(),
+        });
     }
 
     fn pop(&mut self) -> Result<DeserializerItem<'_>> {
@@ -673,11 +663,13 @@ impl<'de> Deserializer<'de> {
         let it = self.pop()?;
         match it.val {
             None => {
-                derr!("Could not find argument '{}' (from struct field '{}').
+                derr!(
+                    "Could not find argument '{}' (from struct field '{}').
 Note that each struct field must have the right key prefix, which must
 be one of `cmd_`, `flag_` or `arg_`.",
-                      it.key,
-                      it.struct_field)
+                    it.key,
+                    it.struct_field
+                )
             }
             Some(v) => Ok((it.key, v)),
         }
@@ -689,8 +681,9 @@ be one of `cmd_`, `flag_` or `arg_`.",
     }
 
     fn to_number<T>(&mut self, expect: &str) -> Result<T>
-        where T: FromStr + ToString,
-              <T as FromStr>::Err: Debug
+    where
+        T: FromStr + ToString,
+        <T as FromStr>::Err: Debug,
     {
         let (k, v) = self.pop_key_val()?;
         match v {
@@ -701,10 +694,12 @@ be one of `cmd_`, `flag_` or `arg_`.",
                 } else {
                     match v.as_str().parse() {
                         Err(_) => {
-                            derr!("Could not deserialize '{}' to {} for '{}'.",
-                                  v.as_str(),
-                                  expect,
-                                  k)
+                            derr!(
+                                "Could not deserialize '{}' to {} for '{}'.",
+                                v.as_str(),
+                                expect,
+                                k
+                            )
                         }
                         Ok(v) => Ok(v),
                     }
@@ -717,42 +712,45 @@ be one of `cmd_`, `flag_` or `arg_`.",
         let (k, v) = self.pop_key_val()?;
         match v {
             Counted(n) => Ok(n as f64),
-            _ => {
-                match v.as_str().parse() {
-                    Err(_) => {
-                        derr!("Could not deserialize '{}' to {} for '{}'.",
-                              v.as_str(),
-                              expect,
-                              k)
-                    }
-                    Ok(v) => Ok(v),
+            _ => match v.as_str().parse() {
+                Err(_) => {
+                    derr!(
+                        "Could not deserialize '{}' to {} for '{}'.",
+                        v.as_str(),
+                        expect,
+                        k
+                    )
                 }
-            }
+                Ok(v) => Ok(v),
+            },
         }
     }
 }
 
 macro_rules! deserialize_num {
-    ($name:ident, $method:ident, $ty:ty) => (
+    ($name:ident, $method:ident, $ty:ty) => {
         fn $name<V>(self, visitor: V) -> Result<V::Value>
-            where V: de::Visitor<'de>
+        where
+            V: de::Visitor<'de>,
         {
             visitor.$method(self.to_number::<$ty>(stringify!($ty)).map(|n| n as $ty)?)
         }
-    );
+    };
 }
 
 impl<'a, 'de> ::serde::Deserializer<'de> for &'a mut Deserializer<'de> {
     type Error = Error;
 
     fn deserialize_any<V>(self, _visitor: V) -> Result<V::Value>
-        where V: de::Visitor<'de>
+    where
+        V: de::Visitor<'de>,
     {
         unimplemented!()
     }
 
     fn deserialize_bool<V>(self, visitor: V) -> Result<V::Value>
-        where V: de::Visitor<'de>
+    where
+        V: de::Visitor<'de>,
     {
         visitor.visit_bool(self.pop_val().map(|v| v.as_bool())?)
     }
@@ -768,19 +766,22 @@ impl<'a, 'de> ::serde::Deserializer<'de> for &'a mut Deserializer<'de> {
     deserialize_num!(deserialize_u64, visit_u64, u64);
 
     fn deserialize_f32<V>(self, visitor: V) -> Result<V::Value>
-        where V: de::Visitor<'de>
+    where
+        V: de::Visitor<'de>,
     {
         visitor.visit_f32(self.to_float("f32").map(|n| n as f32)?)
     }
 
     fn deserialize_f64<V>(self, visitor: V) -> Result<V::Value>
-        where V: de::Visitor<'de>
+    where
+        V: de::Visitor<'de>,
     {
         visitor.visit_f64(self.to_float("f64")?)
     }
 
     fn deserialize_char<V>(self, visitor: V) -> Result<V::Value>
-        where V: de::Visitor<'de>
+    where
+        V: de::Visitor<'de>,
     {
         let (k, v) = self.pop_key_val()?;
         let vstr = v.as_str();
@@ -791,32 +792,37 @@ impl<'a, 'de> ::serde::Deserializer<'de> for &'a mut Deserializer<'de> {
     }
 
     fn deserialize_str<V>(self, visitor: V) -> Result<V::Value>
-        where V: de::Visitor<'de>
+    where
+        V: de::Visitor<'de>,
     {
         let s = self.pop_val()?;
         visitor.visit_str(s.as_str())
     }
 
-    fn deserialize_string<V>(self, visitor:V) -> Result<V::Value>
-        where V: de::Visitor<'de>
+    fn deserialize_string<V>(self, visitor: V) -> Result<V::Value>
+    where
+        V: de::Visitor<'de>,
     {
         self.deserialize_str(visitor)
     }
 
     fn deserialize_bytes<V>(self, _visitor: V) -> Result<V::Value>
-        where V: de::Visitor<'de>
+    where
+        V: de::Visitor<'de>,
     {
         unimplemented!()
     }
 
     fn deserialize_byte_buf<V>(self, _visitor: V) -> Result<V::Value>
-        where V: de::Visitor<'de>
+    where
+        V: de::Visitor<'de>,
     {
         unimplemented!()
     }
 
-    fn  deserialize_option<V>(self, visitor: V) -> Result<V::Value>
-        where V: de::Visitor<'de>
+    fn deserialize_option<V>(self, visitor: V) -> Result<V::Value>
+    where
+        V: de::Visitor<'de>,
     {
         let is_some = match self.stack.last() {
             None => derr!("Could not deserialize value into unknown key."),
@@ -830,78 +836,92 @@ impl<'a, 'de> ::serde::Deserializer<'de> for &'a mut Deserializer<'de> {
     }
 
     fn deserialize_unit<V>(self, _visitor: V) -> Result<V::Value>
-        where V: de::Visitor<'de>
+    where
+        V: de::Visitor<'de>,
     {
         // I don't know what the right thing is here, so just fail for now.
         panic!("I don't know how to read into a nil value.")
     }
 
     fn deserialize_unit_struct<V>(self, _name: &'static str, visitor: V) -> Result<V::Value>
-        where V: de::Visitor<'de>
+    where
+        V: de::Visitor<'de>,
     {
         visitor.visit_unit()
     }
 
     fn deserialize_newtype_struct<V>(self, _name: &'static str, visitor: V) -> Result<V::Value>
-        where V: de::Visitor<'de>
+    where
+        V: de::Visitor<'de>,
     {
         visitor.visit_newtype_struct(self)
     }
 
     fn deserialize_tuple<V>(self, _len: usize, _visitor: V) -> Result<V::Value>
-        where V: de::Visitor<'de>
+    where
+        V: de::Visitor<'de>,
     {
         unimplemented!()
     }
 
-    fn deserialize_tuple_struct<V>(self,
-                                   _name: &'static str,
-                                   _len: usize,
-                                   _visitor: V)
-                                   -> Result<V::Value>
-        where V: de::Visitor<'de>
+    fn deserialize_tuple_struct<V>(
+        self,
+        _name: &'static str,
+        _len: usize,
+        _visitor: V,
+    ) -> Result<V::Value>
+    where
+        V: de::Visitor<'de>,
     {
         unimplemented!()
     }
 
     fn deserialize_map<V>(self, _visitor: V) -> Result<V::Value>
-        where V: de::Visitor<'de>
+    where
+        V: de::Visitor<'de>,
     {
         unimplemented!()
     }
 
     fn deserialize_seq<V>(self, visitor: V) -> Result<V::Value>
-        where V: de::Visitor<'de>
+    where
+        V: de::Visitor<'de>,
     {
         let (key, struct_field, val) = match self.stack.pop() {
             None => derr!("Could not deserialize value into unknown key."),
-            Some(DeserializerItem {key, struct_field, val}) => (key, struct_field, val),
+            Some(DeserializerItem {
+                key,
+                struct_field,
+                val,
+            }) => (key, struct_field, val),
         };
         let list = val.unwrap_or(List(vec![]));
         let vals = list.as_vec();
         for val in vals.iter().rev() {
-            self.stack
-                .push(DeserializerItem {
-                          key: key.clone(),
-                          struct_field,
-                          val: Some(Plain(Some((*val).into()))),
-                      });
+            self.stack.push(DeserializerItem {
+                key: key.clone(),
+                struct_field,
+                val: Some(Plain(Some((*val).into()))),
+            });
         }
         visitor.visit_seq(SeqDeserializer::new(self, vals.len()))
     }
 
-    fn deserialize_struct<V>(self,
-                             _: &str,
-                             fields: &'static [&'static str],
-                             visitor: V)
-                             -> Result<V::Value>
-        where V: de::Visitor<'de>
+    fn deserialize_struct<V>(
+        self,
+        _: &str,
+        fields: &'static [&'static str],
+        visitor: V,
+    ) -> Result<V::Value>
+    where
+        V: de::Visitor<'de>,
     {
         visitor.visit_seq(StructDeserializer::new(self, fields))
     }
 
     fn deserialize_enum<V>(self, _name: &str, variants: &[&str], visitor: V) -> Result<V::Value>
-        where V: de::Visitor<'de>
+    where
+        V: de::Visitor<'de>,
     {
         let v = self.pop_val()?.as_str().to_lowercase();
         let Some(s) = variants.iter().find(|&n| n.to_lowercase() == v) else {
@@ -911,20 +931,22 @@ impl<'a, 'de> ::serde::Deserializer<'de> for &'a mut Deserializer<'de> {
     }
 
     fn deserialize_identifier<V>(self, visitor: V) -> Result<V::Value>
-        where V: de::Visitor<'de>
+    where
+        V: de::Visitor<'de>,
     {
         self.deserialize_str(visitor)
     }
 
     fn deserialize_ignored_any<V>(self, visitor: V) -> Result<V::Value>
-        where V: de::Visitor<'de>
+    where
+        V: de::Visitor<'de>,
     {
         self.deserialize_any(visitor)
     }
 }
 
 struct SeqDeserializer<'a, 'de: 'a> {
-    de: &'a mut Deserializer<'de>,
+    de:  &'a mut Deserializer<'de>,
     len: usize,
 }
 
@@ -938,7 +960,8 @@ impl<'a, 'de> de::SeqAccess<'de> for SeqDeserializer<'a, 'de> {
     type Error = Error;
 
     fn next_element_seed<T>(&mut self, seed: T) -> Result<Option<T::Value>>
-        where T: de::DeserializeSeed<'de>
+    where
+        T: de::DeserializeSeed<'de>,
     {
         if self.len == 0 {
             return Ok(None);
@@ -953,16 +976,13 @@ impl<'a, 'de> de::SeqAccess<'de> for SeqDeserializer<'a, 'de> {
 }
 
 struct StructDeserializer<'a, 'de: 'a> {
-    de: &'a mut Deserializer<'de>,
+    de:     &'a mut Deserializer<'de>,
     fields: &'static [&'static str],
 }
 
 impl<'a, 'de> StructDeserializer<'a, 'de> {
     fn new(de: &'a mut Deserializer<'de>, fields: &'static [&'static str]) -> Self {
-        StructDeserializer {
-            de,
-            fields,
-        }
+        StructDeserializer { de, fields }
     }
 }
 
@@ -970,7 +990,8 @@ impl<'a, 'de> de::SeqAccess<'de> for StructDeserializer<'a, 'de> {
     type Error = Error;
 
     fn next_element_seed<T>(&mut self, seed: T) -> Result<Option<T::Value>>
-        where T: de::DeserializeSeed<'de>
+    where
+        T: de::DeserializeSeed<'de>,
     {
         if self.fields.is_empty() {
             return Ok(None);

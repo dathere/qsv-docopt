@@ -30,9 +30,9 @@ See 'cargo help <command>' for more information on a specific command.
 
 #[derive(Debug, Deserialize)]
 struct Args {
-    arg_command: Option<Command>,
-    arg_args: Vec<String>,
-    flag_list: bool,
+    arg_command:  Option<Command>,
+    arg_args:     Vec<String>,
+    flag_list:    bool,
     flag_verbose: bool,
 }
 

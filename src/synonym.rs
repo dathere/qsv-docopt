@@ -1,9 +1,13 @@
-use std::collections::HashMap;
-use std::collections::hash_map::{Iter, Keys};
-use std::fmt::Debug;
-use std::hash::Hash;
-use std::iter::{FromIterator, IntoIterator};
-use std::mem;
+use std::{
+    collections::{
+        hash_map::{Iter, Keys},
+        HashMap,
+    },
+    fmt::Debug,
+    hash::Hash,
+    iter::{FromIterator, IntoIterator},
+    mem,
+};
 
 #[derive(Clone)]
 pub struct SynonymMap<K, V> {
@@ -48,7 +52,10 @@ impl<K: Eq + Hash, V> SynonymMap<K, V> {
         self.vals.len()
     }
 
-    fn with_key<T, F>(&self, k: &K, with: F) -> T where F: FnOnce(&K) -> T {
+    fn with_key<T, F>(&self, k: &K, with: F) -> T
+    where
+        F: FnOnce(&K) -> T,
+    {
         if self.syns.contains_key(k) {
             with(&self.syns[k])
         } else {
@@ -90,7 +97,7 @@ impl<K: Eq + Hash + Clone, V> SynonymMap<K, V> {
 }
 
 impl<K: Eq + Hash + Clone, V> FromIterator<(K, V)> for SynonymMap<K, V> {
-    fn from_iter<T: IntoIterator<Item=(K, V)>>(iter: T) -> SynonymMap<K, V> {
+    fn from_iter<T: IntoIterator<Item = (K, V)>>(iter: T) -> SynonymMap<K, V> {
         let mut map = SynonymMap::new();
         for (k, v) in iter {
             map.insert(k, v);

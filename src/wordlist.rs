@@ -1,11 +1,15 @@
-use std::collections::HashMap;
-use std::io::{self, Read, Write};
+use std::{
+    collections::HashMap,
+    io::{self, Read, Write},
+};
 
 use regex::Regex;
 use serde::Deserialize;
 
-use crate::dopt::Docopt;
-use crate::parse::{Atom, Parser};
+use crate::{
+    dopt::Docopt,
+    parse::{Atom, Parser},
+};
 
 macro_rules! regex(
     ($s:expr) => (regex::Regex::new($s).unwrap());
@@ -51,7 +55,7 @@ Which will only include 'a', 'b' and 'c' in the wordlist if
 
 #[derive(Debug, Deserialize)]
 struct Args {
-    arg_name: Vec<String>,
+    arg_name:      Vec<String>,
     arg_possibles: Vec<String>,
 }
 
@@ -60,7 +64,7 @@ fn main() {
         .and_then(|d| d.deserialize())
         .unwrap_or_else(|e| e.exit());
     match run(args) {
-        Ok(_) => {},
+        Ok(_) => {}
         Err(err) => {
             write!(&mut io::stderr(), "{err}").unwrap();
             ::std::process::exit(1)
@@ -70,20 +74,23 @@ fn main() {
 
 fn run(args: Args) -> Result<(), String> {
     let mut usage = String::new();
-    io::stdin().read_to_string(&mut usage).map_err(|e| e.to_string())?;
+    io::stdin()
+        .read_to_string(&mut usage)
+        .map_err(|e| e.to_string())?;
     let parsed = Parser::new(&usage)?;
-    let arg_possibles: HashMap<String, Vec<String>> =
-        args.arg_name.iter()
-                     .zip(args.arg_possibles.iter())
-                     .map(|(name, possibles)| {
-                         let choices = Regex::new(r"[ \t]+")
-                             .unwrap()
-                             .split(possibles)
-                             .map(std::string::ToString::to_string)
-                             .collect::<Vec<String>>();
-                         (name.clone(), choices)
-                     })
-                     .collect();
+    let arg_possibles: HashMap<String, Vec<String>> = args
+        .arg_name
+        .iter()
+        .zip(args.arg_possibles.iter())
+        .map(|(name, possibles)| {
+            let choices = Regex::new(r"[ \t]+")
+                .unwrap()
+                .split(possibles)
+                .map(std::string::ToString::to_string)
+                .collect::<Vec<String>>();
+            (name.clone(), choices)
+        })
+        .collect();
 
     let mut words = vec![];
     for k in parsed.descs.keys() {

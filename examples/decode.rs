@@ -22,13 +22,13 @@ Options:
 
 #[derive(Debug, Deserialize)]
 struct Args {
-    flag_speed: isize,
+    flag_speed:    isize,
     flag_drifting: bool,
-    arg_name: Vec<String>,
-    arg_x: Option<isize>,
-    arg_y: Option<isize>,
-    cmd_ship: bool,
-    cmd_mine: bool,
+    arg_name:      Vec<String>,
+    arg_x:         Option<isize>,
+    arg_y:         Option<isize>,
+    cmd_ship:      bool,
+    cmd_mine:      bool,
 }
 
 fn main() {

@@ -2,8 +2,10 @@ use std::collections::HashMap;
 
 use serde::Deserialize;
 
-use crate::{Docopt, ArgvMap, Error};
-use crate::Value::{self, Switch, Plain};
+use crate::{
+    ArgvMap, Docopt, Error,
+    Value::{self, Plain, Switch},
+};
 
 fn get_args(doc: &str, argv: &[&'static str]) -> ArgvMap {
     let dopt = match Docopt::new(doc) {
@@ -16,8 +18,7 @@ fn get_args(doc: &str, argv: &[&'static str]) -> ArgvMap {
     }
 }
 
-fn map_from_alist(alist: Vec<(&'static str, Value)>)
-                 -> HashMap<String, Value> {
+fn map_from_alist(alist: Vec<(&'static str, Value)>) -> HashMap<String, Value> {
     alist.into_iter().map(|(k, v)| (k.to_string(), v)).collect()
 }
 
@@ -26,8 +27,7 @@ fn same_args(expected: &HashMap<String, Value>, got: &ArgvMap) {
         match got.map.find(k) {
             None => panic!("EXPECTED has '{}' but GOT does not.", k),
             Some(vg) => {
-                assert!(ve == vg,
-                        "{}: EXPECTED = '{:?}' != '{:?}' = GOT", k, ve, vg)
+                assert!(ve == vg, "{}: EXPECTED = '{:?}' != '{:?}' = GOT", k, ve, vg)
             }
         }
     }
@@ -35,8 +35,7 @@ fn same_args(expected: &HashMap<String, Value>, got: &ArgvMap) {
         match got.map.find(k) {
             None => panic!("GOT has '{}' but EXPECTED does not.", k),
             Some(ve) => {
-                assert!(vg == ve,
-                        "{}: GOT = '{:?}' != '{:?}' = EXPECTED", k, vg, ve)
+                assert!(vg == ve, "{}: GOT = '{:?}' != '{:?}' = EXPECTED", k, vg, ve)
             }
         }
     }
@@ -61,16 +60,25 @@ macro_rules! test_user_error(
     );
 );
 
-test_expect!(test_issue_13, "Usage: prog file <file>", &["file", "file"],
-             vec![("file", Switch(true)),
-                  ("<file>", Plain(Some("file".to_string())))]);
+test_expect!(
+    test_issue_13,
+    "Usage: prog file <file>",
+    &["file", "file"],
+    vec![
+        ("file", Switch(true)),
+        ("<file>", Plain(Some("file".to_string())))
+    ]
+);
 
-test_expect!(test_issue_129, "Usage: prog [options]
+test_expect!(
+    test_issue_129,
+    "Usage: prog [options]
 
 Options:
     --foo ARG   Foo foo.",
-             &["--foo=a b"],
-             vec![("--foo", Plain(Some("a b".into())))]);
+    &["--foo=a b"],
+    vec![("--foo", Plain(Some("a b".into())))]
+);
 
 #[test]
 fn regression_issue_12() {
@@ -83,11 +91,11 @@ fn regression_issue_12() {
 
     #[derive(Deserialize, Debug)]
     struct Args {
-        arg_file: String,
-        cmd_info: bool,
-        cmd_update: bool,
+        arg_file:      String,
+        cmd_info:      bool,
+        cmd_update:    bool,
         arg_timestamp: u64,
-        arg_value: f64,
+        arg_value:     f64,
     }
 
     let dopt: Args = Docopt::new(USAGE)
@@ -106,7 +114,7 @@ fn regression_issue_195() {
     ";
 
     let argv = &["slow", "-abcdefghijklmnopqrs"];
-    let dopt : Docopt = Docopt::new(USAGE).unwrap().argv(argv);
+    let dopt: Docopt = Docopt::new(USAGE).unwrap().argv(argv);
 
     dopt.parse().unwrap();
 }
@@ -115,7 +123,7 @@ fn regression_issue_195() {
 fn regression_issue_219() {
     #[derive(Deserialize)]
     struct Args {
-        arg_type: Vec<String>,
+        arg_type:  Vec<String>,
         arg_param: Vec<String>,
     }
 
@@ -125,7 +133,11 @@ fn regression_issue_219() {
     ";
 
     let argv = &["encode", "-v", "bool", "true", "string", "foo"];
-    let args: Args = Docopt::new(USAGE).unwrap().argv(argv).deserialize().unwrap();
+    let args: Args = Docopt::new(USAGE)
+        .unwrap()
+        .argv(argv)
+        .deserialize()
+        .unwrap();
     assert_eq!(args.arg_type, vec!["bool".to_owned(), "string".to_owned()]);
     assert_eq!(args.arg_param, vec!["true".to_owned(), "foo".to_owned()]);
 }
@@ -144,12 +156,9 @@ fn test_unit_struct() {
     struct Options;
 
     let argv = &["cargo", "version"];
-    let dopt: Result<Options, Error>= Docopt::new(USAGE)
-        .unwrap()
-        .argv(argv)
-        .deserialize();
+    let dopt: Result<Options, Error> = Docopt::new(USAGE).unwrap().argv(argv).deserialize();
     assert!(dopt.is_ok());
 }
 
-mod testcases;
 mod suggestions;
+mod testcases;

@@ -7,7 +7,10 @@
 use std::fmt;
 
 use qsv_docopt::Docopt;
-use serde::{Deserialize, de::{Deserializer, Error, Visitor}};
+use serde::{
+    de::{Deserializer, Error, Visitor},
+    Deserialize,
+};
 
 // Write the Docopt usage string.
 const USAGE: &str = "
@@ -35,21 +38,23 @@ impl<'de> Visitor<'de> for CommandVisitor {
     }
 
     fn visit_str<E>(self, s: &str) -> Result<Self::Value, E>
-        where E: Error
+    where
+        E: Error,
     {
         Ok(match s {
-               "" => Command::None,
-               "A" => Command::A,
-               "B" => Command::B,
-               "C" => Command::C,
-               s => Command::Unknown(s.to_string()),
-           })
+            "" => Command::None,
+            "A" => Command::A,
+            "B" => Command::B,
+            "C" => Command::C,
+            s => Command::Unknown(s.to_string()),
+        })
     }
 }
 
 impl<'de> Deserialize<'de> for Command {
     fn deserialize<D>(d: D) -> Result<Command, D::Error>
-        where D: Deserializer<'de>
+    where
+        D: Deserializer<'de>,
     {
         d.deserialize_str(CommandVisitor)
     }

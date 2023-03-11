@@ -5,29 +5,24 @@
 //
 // Some things that I think are good about the following code:
 //
-//   - The representation of a "usage pattern." I think it is a minimal
-//     representation of a pattern's syntax. (One possible tweak:
-//     `Optional<Vec<Pattern>>` -> `Optional<Box<Pattern>>`.)
-//   - Some disciplined use of regexes. I use a pretty basic state machine
-//     for parsing patterns, but for teasing out the patterns and options
-//     from the Docopt string and for picking out flags with arguments, I
-//     think regexes aren't too bad. There may be one or two scary ones though.
-//   - The core matching algorithm is reasonably simple and concise, but I
-//     think writing down some contracts will help me figure out how to make
-//     the code clearer.
+//   - The representation of a "usage pattern." I think it is a minimal representation of a
+//     pattern's syntax. (One possible tweak: `Optional<Vec<Pattern>>` -> `Optional<Box<Pattern>>`.)
+//   - Some disciplined use of regexes. I use a pretty basic state machine for parsing patterns, but
+//     for teasing out the patterns and options from the Docopt string and for picking out flags
+//     with arguments, I think regexes aren't too bad. There may be one or two scary ones though.
+//   - The core matching algorithm is reasonably simple and concise, but I think writing down some
+//     contracts will help me figure out how to make the code clearer.
 //
 // Some bad things:
 //
-//   - I tried several times to split some of the pieces in this module into
-//     separate modules. I could find no clear separation. This suggests that
-//     there is too much coupling between parsing components. I'm not convinced
-//     that the coupling is necessary.
-//   - The parsers for patterns and argv share some structure. There may be
-//     an easy abstraction waiting there.
-//   - It is not efficient in the slightest. I tried to be conservative with
-//     copying strings, but I think I failed. (It may not be worthwhile to fix
-//     this if it makes the code more awkward. Docopt does not need to be
-//     efficient.)
+//   - I tried several times to split some of the pieces in this module into separate modules. I
+//     could find no clear separation. This suggests that there is too much coupling between parsing
+//     components. I'm not convinced that the coupling is necessary.
+//   - The parsers for patterns and argv share some structure. There may be an easy abstraction
+//     waiting there.
+//   - It is not efficient in the slightest. I tried to be conservative with copying strings, but I
+//     think I failed. (It may not be worthwhile to fix this if it makes the code more awkward.
+//     Docopt does not need to be efficient.)
 //
 // Some things to do immediately:
 //
@@ -38,23 +33,29 @@
 //
 //   - Write a specification for Docopt.
 
-use std::collections::{HashMap, HashSet};
-use std::collections::hash_map::Entry::{Vacant, Occupied};
-use std::cmp::Ordering;
-use std::fmt;
+use std::{
+    cmp::Ordering,
+    collections::{
+        hash_map::Entry::{Occupied, Vacant},
+        HashMap, HashSet,
+    },
+    fmt,
+};
 
 use lazy_static::lazy_static;
-
 use regex::Regex;
 use strsim::levenshtein;
 
-use crate::dopt::Value::{self, Switch, Counted, Plain, List};
-use crate::synonym::SynonymMap;
-use crate::cap_or_empty;
-
-use self::Argument::{Zero, One};
-use self::Atom::{Short, Long, Command, Positional};
-use self::Pattern::{Alternates, Sequence, Optional, Repeat, PatAtom};
+use self::{
+    Argument::{One, Zero},
+    Atom::{Command, Long, Positional, Short},
+    Pattern::{Alternates, Optional, PatAtom, Repeat, Sequence},
+};
+use crate::{
+    cap_or_empty,
+    dopt::Value::{self, Counted, List, Plain, Switch},
+    synonym::SynonymMap,
+};
 
 macro_rules! err(
     ($($arg:tt)*) => (return Err(format!($($arg)*)))
@@ -62,22 +63,22 @@ macro_rules! err(
 
 #[derive(Clone)]
 pub struct Parser {
-    pub program: String,
-    pub full_doc: String,
-    pub usage: String,
-    pub descs: SynonymMap<Atom, Options>,
-    usages: Vec<Pattern>,
+    pub program:     String,
+    pub full_doc:    String,
+    pub usage:       String,
+    pub descs:       SynonymMap<Atom, Options>,
+    usages:          Vec<Pattern>,
     last_atom_added: Option<Atom>, // context for [default: ...]
 }
 
 impl Parser {
     pub fn new(doc: &str) -> Result<Parser, String> {
         let mut d = Parser {
-            program: String::new(),
-            full_doc: doc.into(),
-            usage: String::new(),
-            usages: vec!(),
-            descs: SynonymMap::new(),
+            program:         String::new(),
+            full_doc:        doc.into(),
+            usage:           String::new(),
+            usages:          vec![],
+            descs:           SynonymMap::new(),
             last_atom_added: None,
         };
         d.parse(doc)?;
@@ -94,15 +95,14 @@ impl Parser {
         None
     }
 
-    pub fn parse_argv(&self, argv: &[String], options_first: bool)
-                         -> Result<Argv<'_>, String> {
+    pub fn parse_argv(&self, argv: &[String], options_first: bool) -> Result<Argv<'_>, String> {
         Argv::new(self, argv, options_first)
     }
 }
 
 impl Parser {
     fn options_atoms(&self) -> Vec<Atom> {
-        let mut atoms = vec!();
+        let mut atoms = vec![];
         for (atom, _) in self.descs.iter().filter(|&(_, opts)| opts.is_desc) {
             atoms.push(atom.clone());
         }
@@ -125,9 +125,8 @@ impl Parser {
 
     fn parse(&mut self, doc: &str) -> Result<(), String> {
         lazy_static! {
-            static ref MUSAGE: Regex = Regex::new(
-                r"(?s)(?i:usage):\s*(?P<prog>\S+)(?P<pats>.*?)(?:$|\n\s*\n)"
-            ).unwrap();
+            static ref MUSAGE: Regex =
+                Regex::new(r"(?s)(?i:usage):\s*(?P<prog>\S+)(?P<pats>.*?)(?:$|\n\s*\n)").unwrap();
         }
         let caps = match MUSAGE.captures(doc) {
             None => err!("Could not find usage patterns in doc string."),
@@ -151,7 +150,7 @@ impl Parser {
         // *sigh* Apparently the above is not true. The official test suite
         // includes `Options: -a ...`, which means some lines not beginning
         // with `-` can actually have options.
-        let (pstart, pend) = caps.get(0).map(|m|(m.start(), m.end())).unwrap();
+        let (pstart, pend) = caps.get(0).map(|m| (m.start(), m.end())).unwrap();
         let (before, after) = (&doc[..pstart], &doc[pend..]);
         // We process every line here (instead of restricting to lines starting
         // with "-") because we need to check every line for a default value.
@@ -162,7 +161,8 @@ impl Parser {
 
         let mprog = format!(
             "^(?:{})?\\s*(.*?)\\s*$",
-            regex::escape(cap_or_empty(&caps, "prog")));
+            regex::escape(cap_or_empty(&caps, "prog"))
+        );
         let pats = Regex::new(&mprog).unwrap();
 
         if cap_or_empty(&caps, "pats").is_empty() {
@@ -185,17 +185,19 @@ impl Parser {
             static ref ISFLAG: Regex = regex!(r"^(-\S|--\S)");
             static ref REMOVE_DESC: Regex = regex!(r"  .*$");
             static ref NORMALIZE_FLAGS: Regex = regex!(r"([^-\s]), -");
-            static ref FIND_FLAGS: Regex = regex!(r"(?x)
+            static ref FIND_FLAGS: Regex = regex!(
+                r"(?x)
                 (?:(?P<long>--[^\x20\t=]+)|(?P<short>-[^\x20\t=]+))
                 (?:(?:\x20|=)(?P<arg>[^.-]\S*))?
                 (?P<repeated>\x20\.\.\.)?
-            ");
+            "
+            );
         }
         let desc = OPTIONS.replace(full_desc.trim(), "");
         let desc = &*desc;
         if !ISFLAG.is_match(desc) {
             self.parse_default(full_desc)?;
-            return Ok(())
+            return Ok(());
         }
 
         // Get rid of the description, which must be at least two spaces
@@ -216,29 +218,33 @@ impl Parser {
                 // a valid repeated option.
                 repeated = true;
             }
-            let (s, l) = (
-                cap_or_empty(&flags, "short"),
-                cap_or_empty(&flags, "long"),
-            );
+            let (s, l) = (cap_or_empty(&flags, "short"), cap_or_empty(&flags, "long"));
             if !s.is_empty() {
                 if !short.is_empty() {
-                    err!("Only one short flag is allowed in an option \
-                          description, but found '{}' and '{}'.", short, s)
+                    err!(
+                        "Only one short flag is allowed in an option description, but found '{}' \
+                         and '{}'.",
+                        short,
+                        s
+                    )
                 }
                 short = s.into()
             }
             if !l.is_empty() {
                 if !long.is_empty() {
-                    err!("Only one long flag is allowed in an option \
-                          description, but found '{}' and '{}'.", long, l)
+                    err!(
+                        "Only one long flag is allowed in an option description, but found '{}' \
+                         and '{}'.",
+                        long,
+                        l
+                    )
                 }
                 long = l.into()
             }
             if let Some(arg) = flags.name("arg").map(|m| m.as_str()) {
                 if !arg.is_empty() {
                     if !Atom::is_arg(arg) {
-                        err!("Argument '{}' is not of the form ARG or <arg>.",
-                             arg)
+                        err!("Argument '{}' is not of the form ARG or <arg>.", arg)
                     }
                     has_arg = true; // may be changed to default later
                 }
@@ -248,8 +254,11 @@ impl Parser {
         // then there is some malformed description. Alert the user.
         assert!(last_end <= desc.len());
         if last_end < desc.len() {
-            err!("Extraneous text '{}' in option description '{}'.",
-                 &desc[last_end..], desc)
+            err!(
+                "Extraneous text '{}' in option description '{}'.",
+                &desc[last_end..],
+                desc
+            )
         }
         self.add_desc(&short, &long, has_arg, repeated)?;
         // Looking for default in this line must come after adding the
@@ -260,34 +269,37 @@ impl Parser {
 
     fn parse_default(&mut self, desc: &str) -> Result<(), String> {
         lazy_static! {
-            static ref FIND_DEFAULT: Regex = regex!(
-                r"\[(?i:default):(?P<val>.*)\]"
-            );
+            static ref FIND_DEFAULT: Regex = regex!(r"\[(?i:default):(?P<val>.*)\]");
         }
-        let defval =
-            match FIND_DEFAULT.captures(desc) {
-                None => return Ok(()),
-                Some(c) => cap_or_empty(&c, "val").trim(),
-            };
-        let last_atom =
-            match self.last_atom_added {
-                None => err!("Found default value '{}' in '{}' before first \
-                              option description.", defval, desc),
-                Some(ref atom) => atom,
-            };
-        let opts =
-            self.descs
+        let defval = match FIND_DEFAULT.captures(desc) {
+            None => return Ok(()),
+            Some(c) => cap_or_empty(&c, "val").trim(),
+        };
+        let last_atom = match self.last_atom_added {
+            None => err!(
+                "Found default value '{}' in '{}' before first option description.",
+                defval,
+                desc
+            ),
+            Some(ref atom) => atom,
+        };
+        let opts = self
+            .descs
             .find_mut(last_atom)
             .unwrap_or_else(|| panic!("BUG: last opt desc key ('{last_atom:?}') is invalid."));
         match opts.arg {
-            One(None) => {}, // OK
-            Zero =>
-                err!("Cannot assign default value '{}' to flag '{}' \
-                      that has no arguments.", defval, last_atom),
-            One(Some(ref curval)) =>
-                err!("Flag '{}' already has a default value \
-                      of '{}' (second default value: '{}').",
-                     last_atom, curval, defval),
+            One(None) => {} // OK
+            Zero => err!(
+                "Cannot assign default value '{}' to flag '{}' that has no arguments.",
+                defval,
+                last_atom
+            ),
+            One(Some(ref curval)) => err!(
+                "Flag '{}' already has a default value of '{}' (second default value: '{}').",
+                last_atom,
+                curval,
+                defval
+            ),
         }
         opts.arg = One(Some(defval.into()));
         Ok(())
@@ -306,8 +318,7 @@ impl Parser {
             // these lines.
             return Ok(());
         }
-        let mut opts = Options::new(
-            repeated, if has_arg { One(None) } else { Zero });
+        let mut opts = Options::new(repeated, if has_arg { One(None) } else { Zero });
         opts.is_desc = true;
 
         if !short.is_empty() && !long.is_empty() {
@@ -331,7 +342,8 @@ impl Parser {
 impl fmt::Debug for Parser {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> Result<(), fmt::Error> {
         fn sorted<T: Ord>(mut xs: Vec<T>) -> Vec<T> {
-            xs.sort(); xs
+            xs.sort();
+            xs
         }
 
         writeln!(f, "=====")?;
@@ -344,8 +356,7 @@ impl fmt::Debug for Parser {
         }
 
         writeln!(f, "Synonyms:")?;
-        let keys: Vec<(&Atom, &Atom)> =
-            sorted(self.descs.synonyms().collect());
+        let keys: Vec<(&Atom, &Atom)> = sorted(self.descs.synonyms().collect());
         for &(from, to) in &keys {
             writeln!(f, "  {from:?} => {to:?}")?;
         }
@@ -359,10 +370,10 @@ impl fmt::Debug for Parser {
 }
 
 struct PatParser<'a> {
-    dopt: &'a mut Parser,
-    tokens: Vec<String>, // used while parsing a single usage pattern
-    curi: usize, // ^^ index into pattern chars
-    expecting: Vec<char>, // stack of expected ']' or ')'
+    dopt:      &'a mut Parser,
+    tokens:    Vec<String>, // used while parsing a single usage pattern
+    curi:      usize,       // ^^ index into pattern chars
+    expecting: Vec<char>,   // stack of expected ']' or ')'
 }
 
 impl<'a> PatParser<'a> {
@@ -371,7 +382,7 @@ impl<'a> PatParser<'a> {
             dopt,
             tokens: pattern_tokens(pat),
             curi: 0,
-            expecting: vec!(),
+            expecting: vec![],
         }
     }
 
@@ -379,7 +390,7 @@ impl<'a> PatParser<'a> {
         // let mut seen = HashSet::new();
         let mut p = self.pattern()?;
         match self.expecting.pop() {
-            None => {},
+            None => {}
             Some(c) => err!("Unclosed group. Expected '{}'.", c),
         }
         p.add_options_shortcut(self.dopt);
@@ -388,13 +399,12 @@ impl<'a> PatParser<'a> {
     }
 
     fn pattern(&mut self) -> Result<Pattern, String> {
-        let mut alts = vec!();
-        let mut seq = vec!();
+        let mut alts = vec![];
+        let mut seq = vec![];
         while !self.is_eof() {
             match self.cur() {
                 "..." => {
-                    err!("'...' must appear directly after a group, argument, \
-                          flag or command.")
+                    err!("'...' must appear directly after a group, argument, flag or command.")
                 }
                 "-" | "--" => {
                     // As per specification, `-` and `--` by themselves are
@@ -407,33 +417,32 @@ impl<'a> PatParser<'a> {
                     }
                     self.next_noeof("pattern")?;
                     alts.push(Sequence(seq));
-                    seq = vec!();
+                    seq = vec![];
                 }
                 "]" | ")" => {
                     if seq.is_empty() {
-                        err!("Unexpected '{}'. Empty groups are not allowed.",
-                             self.cur())
+                        err!("Unexpected '{}'. Empty groups are not allowed.", self.cur())
                     }
                     match self.expecting.pop() {
-                        None => err!("Unexpected '{}'. No open bracket found.",
-                                     self.cur()),
+                        None => err!("Unexpected '{}'. No open bracket found.", self.cur()),
                         Some(c) => {
                             if c != self.cur().chars().next().unwrap() {
-                                err!("Expected '{}' but got '{}'.",
-                                     c, self.cur())
+                                err!("Expected '{}' but got '{}'.", c, self.cur())
                             }
                         }
                     }
-                    let mk: fn(Vec<Pattern>) -> Pattern =
-                        if self.cur() == "]" { Optional } else { Sequence };
+                    let mk: fn(Vec<Pattern>) -> Pattern = if self.cur() == "]" {
+                        Optional
+                    } else {
+                        Sequence
+                    };
                     self.next();
-                    return
-                        if alts.is_empty() {
-                            Ok(mk(seq))
-                        } else {
-                            alts.push(Sequence(seq));
-                            Ok(mk(vec!(Alternates(alts))))
-                        }
+                    return if alts.is_empty() {
+                        Ok(mk(seq))
+                    } else {
+                        alts.push(Sequence(seq));
+                        Ok(mk(vec![Alternates(alts)]))
+                    };
                 }
                 "[" => {
                     // Check for special '[options]' shortcut.
@@ -441,8 +450,8 @@ impl<'a> PatParser<'a> {
                         self.next(); // cur == options
                         self.next(); // cur == ]
                         self.next();
-                        seq.push(self.maybe_repeat(Optional(vec!())));
-                        continue
+                        seq.push(self.maybe_repeat(Optional(vec![])));
+                        continue;
                     }
                     self.expecting.push(']');
                     seq.push(self.group()?);
@@ -478,7 +487,7 @@ impl<'a> PatParser<'a> {
     }
 
     fn flag_short(&mut self) -> Result<Vec<Pattern>, String> {
-        let mut seq = vec!();
+        let mut seq = vec![];
         let stacked: String = self.cur()[1..].into();
         for (i, c) in stacked.chars().enumerate() {
             let atom = self.dopt.descs.resolve(&Short(c));
@@ -495,7 +504,7 @@ impl<'a> PatParser<'a> {
                 // we interpret the "rest" of the characters as the argument.
                 // If the "rest" is empty, then we peek to find and make sure
                 // there is an argument.
-                let rest = &stacked[i+1..];
+                let rest = &stacked[i + 1..];
                 if rest.is_empty() {
                     self.next_flag_arg(&atom)?;
                 } else {
@@ -503,7 +512,7 @@ impl<'a> PatParser<'a> {
                 }
                 // We either error'd or consumed the rest of the short stack as
                 // an argument.
-                break
+                break;
             } else {
                 self.add_atom_ifnotexists(Zero, &atom);
             }
@@ -557,11 +566,13 @@ impl<'a> PatParser<'a> {
         self.errif_invalid_flag_arg(atom, self.cur())
     }
 
-    fn errif_invalid_flag_arg(&self, atom: &Atom, arg: &str)
-                             -> Result<(), String> {
+    fn errif_invalid_flag_arg(&self, atom: &Atom, arg: &str) -> Result<(), String> {
         if !Atom::is_arg(arg) {
-            err!("Expected argument for flag '{}', but found \
-                  malformed argument '{}'.", atom, arg)
+            err!(
+                "Expected argument for flag '{}', but found malformed argument '{}'.",
+                atom,
+                arg
+            )
         }
         Ok(())
     }
@@ -587,8 +598,7 @@ impl<'a> PatParser<'a> {
         }
     }
 
-    fn group(&mut self)
-            -> Result<Pattern, String> {
+    fn group(&mut self) -> Result<Pattern, String> {
         self.next_noeof("pattern")?;
         let pat = self.pattern()?;
         Ok(self.maybe_repeat(pat))
@@ -608,7 +618,7 @@ impl<'a> PatParser<'a> {
     }
     fn next(&mut self) {
         if self.curi == self.tokens.len() {
-            return
+            return;
         }
         self.curi += 1;
     }
@@ -675,7 +685,9 @@ impl Pattern {
         fn add(pat: &mut Pattern, all_atoms: &HashSet<Atom>, par: &Parser) {
             match *pat {
                 Alternates(ref mut ps) | Sequence(ref mut ps) => {
-                    for p in ps.iter_mut() { add(p, all_atoms, par) }
+                    for p in ps.iter_mut() {
+                        add(p, all_atoms, par)
+                    }
                 }
                 Repeat(ref mut p) => add(p, all_atoms, par),
                 PatAtom(_) => {}
@@ -691,7 +703,9 @@ impl Pattern {
                             }
                         }
                     } else {
-                        for p in ps.iter_mut() { add(p, all_atoms, par) }
+                        for p in ps.iter_mut() {
+                            add(p, all_atoms, par)
+                        }
                     }
                 }
             }
@@ -704,10 +718,14 @@ impl Pattern {
         fn all_atoms(pat: &Pattern, set: &mut HashSet<Atom>) {
             match *pat {
                 Alternates(ref ps) | Sequence(ref ps) | Optional(ref ps) => {
-                    for p in ps.iter() { all_atoms(p, set) }
+                    for p in ps.iter() {
+                        all_atoms(p, set)
+                    }
                 }
                 Repeat(ref p) => all_atoms(p, set),
-                PatAtom(ref a) => { set.insert(a.clone()); }
+                PatAtom(ref a) => {
+                    set.insert(a.clone());
+                }
             }
         }
         let mut set = HashSet::new();
@@ -716,10 +734,12 @@ impl Pattern {
     }
 
     fn tag_repeats(&self, map: &mut SynonymMap<Atom, Options>) {
-        fn dotag(p: &Pattern,
-                 rep: bool,
-                 map: &mut SynonymMap<Atom, Options>,
-                 seen: &mut HashSet<Atom>) {
+        fn dotag(
+            p: &Pattern,
+            rep: bool,
+            map: &mut SynonymMap<Atom, Options>,
+            seen: &mut HashSet<Atom>,
+        ) {
             match *p {
                 Alternates(ref ps) => {
                     // This is a bit tricky. Basically, we don't want the
@@ -774,7 +794,7 @@ impl Atom {
             Long(s[2..].into())
         } else if Atom::is_arg(s) {
             if s.starts_with('<') && s.ends_with('>') {
-                Positional(s[1..s.len()-1].into())
+                Positional(s[1..s.len() - 1].into())
             } else {
                 Positional(s.into())
             }
@@ -860,10 +880,13 @@ impl fmt::Display for Atom {
     }
 }
 
-
 impl Options {
     fn new(rep: bool, arg: Argument) -> Options {
-        Options { repeats: rep, arg, is_desc: false, }
+        Options {
+            repeats: rep,
+            arg,
+            is_desc: false,
+        }
     }
 }
 
@@ -883,29 +906,28 @@ pub struct Argv<'a> {
     positional: Vec<ArgvToken>,
     /// Same as positional, but contains short and long flags.
     /// Each flag may have an argument string.
-    flags: Vec<ArgvToken>,
+    flags:      Vec<ArgvToken>,
     /// Counts the number of times each flag appears.
-    counts: HashMap<Atom, usize>,
+    counts:     HashMap<Atom, usize>,
 
     // State for parser.
-    dopt: &'a Parser,
-    argv: Vec<String>,
-    curi: usize,
+    dopt:          &'a Parser,
+    argv:          Vec<String>,
+    curi:          usize,
     options_first: bool,
 }
 
 #[derive(Clone, Debug)]
 struct ArgvToken {
     atom: Atom,
-    arg: Option<String>,
+    arg:  Option<String>,
 }
 
 impl<'a> Argv<'a> {
-    fn new(dopt: &'a Parser, argv: &[String], options_first: bool)
-          -> Result<Argv<'a>, String> {
+    fn new(dopt: &'a Parser, argv: &[String], options_first: bool) -> Result<Argv<'a>, String> {
         let mut a = Argv {
-            positional: vec!(),
-            flags: vec!(),
+            positional: vec![],
+            flags: vec![],
             counts: HashMap::new(),
             dopt,
             argv: argv.to_vec(),
@@ -915,8 +937,12 @@ impl<'a> Argv<'a> {
         a.parse()?;
         for flag in &a.flags {
             match a.counts.entry(flag.atom.clone()) {
-                Vacant(v) => { v.insert(1); }
-                Occupied(mut v) => { *v.get_mut() += 1; }
+                Vacant(v) => {
+                    v.insert(1);
+                }
+                Occupied(mut v) => {
+                    *v.get_mut() += 1;
+                }
             }
         }
         Ok(a)
@@ -925,34 +951,30 @@ impl<'a> Argv<'a> {
     fn parse(&mut self) -> Result<(), String> {
         let mut seen_double_dash = false;
         while self.curi < self.argv.len() {
-            let do_flags =
-                !seen_double_dash
-                && (!self.options_first || self.positional.is_empty());
+            let do_flags = !seen_double_dash && (!self.options_first || self.positional.is_empty());
 
             if do_flags && Atom::is_short(self.cur()) {
                 let stacked: String = self.cur()[1..].into();
                 for (i, c) in stacked.chars().enumerate() {
                     let mut tok = ArgvToken {
                         atom: self.dopt.descs.resolve(&Short(c)),
-                        arg: None,
+                        arg:  None,
                     };
                     if !self.dopt.descs.contains_key(&tok.atom) {
                         err!("Unknown flag: '{}'", &tok.atom);
                     }
                     if self.dopt.has_arg(&tok.atom) {
-                        let rest = &stacked[i+1..];
-                        tok.arg = Some(
-                            if rest.is_empty() {
-                                let arg = self.next_arg(&tok.atom)?;
-                                arg.into()
-                            } else {
-                                rest.into()
-                            }
-                        );
+                        let rest = &stacked[i + 1..];
+                        tok.arg = Some(if rest.is_empty() {
+                            let arg = self.next_arg(&tok.atom)?;
+                            arg.into()
+                        } else {
+                            rest.into()
+                        });
                         self.flags.push(tok);
                         // We've either produced an error or gobbled up the
                         // rest of these stacked short flags, so stop.
-                        break
+                        break;
                     } else {
                         self.flags.push(tok);
                     }
@@ -961,14 +983,16 @@ impl<'a> Argv<'a> {
                 let (atom, mut arg) = parse_long_equal_argv(self.cur());
                 let atom = self.dopt.descs.resolve(&atom);
                 if !self.dopt.descs.contains_key(&atom) {
-                    return self.err_unknown_flag(&atom)
+                    return self.err_unknown_flag(&atom);
                 }
                 if arg.is_some() && !self.dopt.has_arg(&atom) {
-                    err!("Flag '{}' cannot have an argument, but found '{}'.",
-                         &atom, arg.as_ref().unwrap())
+                    err!(
+                        "Flag '{}' cannot have an argument, but found '{}'.",
+                        &atom,
+                        arg.as_ref().unwrap()
+                    )
                 } else if arg.is_none() && self.dopt.has_arg(&atom) {
-                    self.next_noeof(&format!("argument for flag '{}'",
-                                                   &atom))?;
+                    self.next_noeof(&format!("argument for flag '{}'", &atom))?;
                     arg = Some(self.cur().into());
                 }
                 self.flags.push(ArgvToken { atom, arg });
@@ -981,7 +1005,7 @@ impl<'a> Argv<'a> {
                 // `command` or not until we start pattern matching.
                 let tok = ArgvToken {
                     atom: Positional(self.cur().into()),
-                    arg: None,
+                    arg:  None,
                 };
                 self.positional.push(tok);
             }
@@ -1026,7 +1050,9 @@ impl<'a> Argv<'a> {
         }
     }
 
-    fn cur(&self) -> &str { self.at(0) }
+    fn cur(&self) -> &str {
+        self.at(0)
+    }
     fn at(&self, i: usize) -> &str {
         &self.argv[self.curi + i]
     }
@@ -1058,21 +1084,20 @@ impl<'a> fmt::Debug for Argv<'a> {
     }
 }
 
-struct Matcher<'a, 'b:'a> {
+struct Matcher<'a, 'b: 'a> {
     argv: &'a Argv<'b>,
 }
 
 #[derive(Clone, Debug, PartialEq)]
 struct MState {
-    argvi: usize, // index into Argv.positional
-    counts: HashMap<Atom, usize>, // flags remaining for pattern consumption
+    argvi:      usize,                // index into Argv.positional
+    counts:     HashMap<Atom, usize>, // flags remaining for pattern consumption
     max_counts: HashMap<Atom, usize>, // optional flag appearances
-    vals: HashMap<Atom, Value>,
+    vals:       HashMap<Atom, Value>,
 }
 
 impl MState {
-    fn fill_value(&mut self, key: Atom, rep: bool, arg: Option<String>)
-                 -> bool {
+    fn fill_value(&mut self, key: Atom, rep: bool, arg: Option<String>) -> bool {
         match (arg, rep) {
             (None, false) => {
                 self.vals.insert(key, Switch(true));
@@ -1080,40 +1105,43 @@ impl MState {
             (Some(arg), false) => {
                 self.vals.insert(key, Plain(Some(arg)));
             }
-            (None, true) => {
-                match self.vals.entry(key) {
-                    Vacant(v) => { v.insert(Counted(1)); }
-                    Occupied(mut v) => {
-                        match *v.get_mut() {
-                            Counted(ref mut c) => { *c += 1; }
-                            _ => return false,
-                        }
-                    }
+            (None, true) => match self.vals.entry(key) {
+                Vacant(v) => {
+                    v.insert(Counted(1));
                 }
-            }
-            (Some(arg), true) => {
-                match self.vals.entry(key) {
-                    Vacant(v) => { v.insert(List(vec!(arg))); }
-                    Occupied(mut v) => {
-                        match *v.get_mut() {
-                            List(ref mut vs) => vs.push(arg),
-                            _ => return false,
-                        }
+                Occupied(mut v) => match *v.get_mut() {
+                    Counted(ref mut c) => {
+                        *c += 1;
                     }
+                    _ => return false,
+                },
+            },
+            (Some(arg), true) => match self.vals.entry(key) {
+                Vacant(v) => {
+                    v.insert(List(vec![arg]));
                 }
-            }
+                Occupied(mut v) => match *v.get_mut() {
+                    List(ref mut vs) => vs.push(arg),
+                    _ => return false,
+                },
+            },
         }
         true
     }
 
-    fn add_value(&mut self, opts: &Options,
-                 spec: &Atom, atom: &Atom, arg: &Option<String>) -> bool {
-        assert!(opts.arg.has_arg() == arg.is_some(),
-                "'{atom:?}' should have an argument but doesn't");
+    fn add_value(
+        &mut self,
+        opts: &Options,
+        spec: &Atom,
+        atom: &Atom,
+        arg: &Option<String>,
+    ) -> bool {
+        assert!(
+            opts.arg.has_arg() == arg.is_some(),
+            "'{atom:?}' should have an argument but doesn't"
+        );
         match *atom {
-            Short(_) | Long(_) => {
-                self.fill_value(spec.clone(), opts.repeats, arg.clone())
-            }
+            Short(_) | Long(_) => self.fill_value(spec.clone(), opts.repeats, arg.clone()),
             Positional(ref v) => {
                 assert!(!opts.arg.has_arg());
                 self.fill_value(spec.clone(), opts.repeats, Some(v.clone()))
@@ -1127,11 +1155,13 @@ impl MState {
 
     fn use_flag(&mut self, flag: &Atom) -> bool {
         match self.max_counts.entry(flag.clone()) {
-            Vacant(v) => { v.insert(0); }
+            Vacant(v) => {
+                v.insert(0);
+            }
             Occupied(_) => {}
         }
         match self.counts.entry(flag.clone()) {
-            Vacant(_) => { false }
+            Vacant(_) => false,
             Occupied(mut v) => {
                 let c = v.get_mut();
                 if *c == 0 {
@@ -1146,13 +1176,16 @@ impl MState {
 
     fn use_optional_flag(&mut self, flag: &Atom) {
         match self.max_counts.entry(flag.clone()) {
-            Vacant(v) => { v.insert(1); }
-            Occupied(mut v) => { *v.get_mut() += 1; }
+            Vacant(v) => {
+                v.insert(1);
+            }
+            Occupied(mut v) => {
+                *v.get_mut() += 1;
+            }
         }
     }
 
-    fn match_cmd_or_posarg(&mut self, spec: &Atom, argv: &ArgvToken)
-                          -> Option<ArgvToken> {
+    fn match_cmd_or_posarg(&mut self, spec: &Atom, argv: &ArgvToken) -> Option<ArgvToken> {
         match (spec, &argv.atom) {
             (_, &Command(_)) => {
                 // This is impossible because the argv parser doesn't know
@@ -1163,7 +1196,10 @@ impl MState {
                 // Coerce a positional to a command because the pattern
                 // demands it and the positional argument matches it.
                 self.argvi += 1;
-                Some(ArgvToken { atom: spec.clone(), arg: None })
+                Some(ArgvToken {
+                    atom: spec.clone(),
+                    arg:  None,
+                })
             }
             (&Positional(_), _) => {
                 self.argvi += 1;
@@ -1175,49 +1211,53 @@ impl MState {
 }
 
 impl<'a, 'b> Matcher<'a, 'b> {
-    fn matches(argv: &'a Argv<'_>, pat: &Pattern)
-              -> Option<SynonymMap<String, Value>> {
+    fn matches(argv: &'a Argv<'_>, pat: &Pattern) -> Option<SynonymMap<String, Value>> {
         let m = Matcher { argv };
         let init = MState {
-            argvi: 0,
-            counts: argv.counts.clone(),
+            argvi:      0,
+            counts:     argv.counts.clone(),
             max_counts: HashMap::new(),
-            vals: HashMap::new(),
+            vals:       HashMap::new(),
         };
         m.states(pat, &init)
-         .into_iter()
-         .filter(|s| m.state_consumed_all_argv(s))
-         .filter(|s| m.state_has_valid_flags(s))
-         .filter(|s| m.state_valid_num_flags(s))
-         .collect::<Vec<MState>>()
-         .into_iter()
-         .next()
-         .map(|mut s| {
-             m.add_flag_values(&mut s);
-             m.add_default_values(&mut s);
+            .into_iter()
+            .filter(|s| m.state_consumed_all_argv(s))
+            .filter(|s| m.state_has_valid_flags(s))
+            .filter(|s| m.state_valid_num_flags(s))
+            .collect::<Vec<MState>>()
+            .into_iter()
+            .next()
+            .map(|mut s| {
+                m.add_flag_values(&mut s);
+                m.add_default_values(&mut s);
 
-             // Build a synonym map so that it's easier to look up values.
-             let mut synmap: SynonymMap<String, Value> =
-                 s.vals.into_iter()
-                       .map(|(k, v)| (k.to_string(), v))
-                       .collect();
-             for (from, to) in argv.dopt.descs.synonyms() {
-                 let (from, to) = (from.to_string(), to.to_string());
-                 if synmap.contains_key(&to) {
-                     synmap.insert_synonym(from, to);
-                 }
-             }
-             synmap
-         })
+                // Build a synonym map so that it's easier to look up values.
+                let mut synmap: SynonymMap<String, Value> = s
+                    .vals
+                    .into_iter()
+                    .map(|(k, v)| (k.to_string(), v))
+                    .collect();
+                for (from, to) in argv.dopt.descs.synonyms() {
+                    let (from, to) = (from.to_string(), to.to_string());
+                    if synmap.contains_key(&to) {
+                        synmap.insert_synonym(from, to);
+                    }
+                }
+                synmap
+            })
     }
 
     fn token_from(&self, state: &MState) -> Option<&ArgvToken> {
         self.argv.positional.get(state.argvi)
     }
 
-    fn add_value(&self, state: &mut MState,
-                 atom_spec: &Atom, atom: &Atom, arg: &Option<String>)
-                -> bool {
+    fn add_value(
+        &self,
+        state: &mut MState,
+        atom_spec: &Atom,
+        atom: &Atom,
+        arg: &Option<String>,
+    ) -> bool {
         let opts = self.argv.dopt.descs.get(atom_spec);
         state.add_value(opts, atom_spec, atom, arg)
     }
@@ -1235,7 +1275,7 @@ impl<'a, 'b> Matcher<'a, 'b> {
         let vs = &mut state.vals;
         for (a, opts) in self.argv.dopt.descs.iter() {
             if vs.contains_key(a) {
-                continue
+                continue;
             }
             let atom = a.clone();
             match (opts.repeats, &opts.arg) {
@@ -1247,20 +1287,24 @@ impl<'a, 'b> Matcher<'a, 'b> {
                 }
                 (true, &Zero) => {
                     match *a {
-                        Positional(_) => vs.insert(atom, List(vec!())),
+                        Positional(_) => vs.insert(atom, List(vec![])),
                         _ => vs.insert(atom, Counted(0)),
                     };
                 }
-                (false, &One(None)) => { vs.insert(atom, Plain(None)); }
-                (true, &One(None)) => { vs.insert(atom, List(vec!())); }
+                (false, &One(None)) => {
+                    vs.insert(atom, Plain(None));
+                }
+                (true, &One(None)) => {
+                    vs.insert(atom, List(vec![]));
+                }
                 (false, &One(Some(ref v))) => {
                     vs.insert(atom, Plain(Some(v.clone())));
                 }
                 (true, &One(Some(ref v))) => {
                     let words = SPLIT_SPACE
-                                .split(v)
-                                .map(std::borrow::ToOwned::to_owned)
-                                .collect();
+                        .split(v)
+                        .map(std::borrow::ToOwned::to_owned)
+                        .collect();
                     vs.insert(atom, List(words));
                 }
             }
@@ -1272,54 +1316,56 @@ impl<'a, 'b> Matcher<'a, 'b> {
     }
 
     fn state_has_valid_flags(&self, state: &MState) -> bool {
-        self.argv.counts.keys().all(|flag| state.max_counts.contains_key(flag))
+        self.argv
+            .counts
+            .keys()
+            .all(|flag| state.max_counts.contains_key(flag))
     }
 
     fn state_valid_num_flags(&self, state: &MState) -> bool {
-        state.counts.iter().all(
-            |(flag, count)| count <= &state.max_counts[flag])
+        state
+            .counts
+            .iter()
+            .all(|(flag, count)| count <= &state.max_counts[flag])
     }
 
     fn states(&self, pat: &Pattern, init: &MState) -> Vec<MState> {
         match *pat {
             Alternates(ref ps) => {
-                let mut alt_states = vec!();
+                let mut alt_states = vec![];
                 for p in ps.iter() {
                     alt_states.extend(self.states(p, init).into_iter());
                 }
                 alt_states
             }
             Sequence(ref ps) => {
-                let (mut states, mut next) = (vec!(), vec!());
+                let (mut states, mut next) = (vec![], vec![]);
                 let mut iter = ps.iter();
                 match iter.next() {
-                    None => return vec!(init.clone()),
+                    None => return vec![init.clone()],
                     Some(p) => states.extend(self.states(p, init).into_iter()),
                 }
                 for p in iter {
                     for s in states {
                         next.extend(self.states(p, &s).into_iter());
                     }
-                    states = vec!();
+                    states = vec![];
                     states.extend(next.into_iter());
-                    next = vec!();
+                    next = vec![];
                 }
                 states
             }
             Optional(ref ps) => {
                 let mut base = init.clone();
-                let mut noflags = vec!();
+                let mut noflags = vec![];
                 for p in ps.iter() {
                     match p {
                         // Prevent exponential growth in cases like [--flag...]
                         // See https://github.com/docopt/docopt.rs/issues/195
                         Repeat(b) => match &**b {
-                            &PatAtom(ref a @ Short(_))
-                            | &PatAtom(ref a @ Long(_)) => {
-                                let argv_count = self.argv.counts.get(a)
-                                                     .map_or(0, |&x| x);
-                                let max_count = base.max_counts.get(a)
-                                                    .map_or(0, |&x| x);
+                            &PatAtom(ref a @ Short(_)) | &PatAtom(ref a @ Long(_)) => {
+                                let argv_count = self.argv.counts.get(a).map_or(0, |&x| x);
+                                let max_count = base.max_counts.get(a).map_or(0, |&x| x);
                                 if argv_count > max_count {
                                     for _ in max_count..argv_count {
                                         base.use_optional_flag(a);
@@ -1330,12 +1376,9 @@ impl<'a, 'b> Matcher<'a, 'b> {
                                 noflags.push(p);
                             }
                         },
-                        &PatAtom(ref a @ Short(_))
-                        | &PatAtom(ref a @ Long(_)) => {
-                            let argv_count = self.argv.counts.get(a)
-                                                 .map_or(0, |&x| x);
-                            let max_count = base.max_counts.get(a)
-                                                .map_or(0, |&x| x);
+                        &PatAtom(ref a @ Short(_)) | &PatAtom(ref a @ Long(_)) => {
+                            let argv_count = self.argv.counts.get(a).map_or(0, |&x| x);
+                            let max_count = base.max_counts.get(a).map_or(0, |&x| x);
                             if argv_count > max_count {
                                 base.use_optional_flag(a);
                             }
@@ -1345,19 +1388,16 @@ impl<'a, 'b> Matcher<'a, 'b> {
                         }
                     }
                 }
-                let mut states = vec!();
+                let mut states = vec![];
                 self.all_option_states(&base, &mut states, &noflags);
                 states
             }
-            Repeat(ref p) => { match &**p {
-                &PatAtom(ref a @ Short(_))
-                | &PatAtom(ref a @ Long(_)) => {
+            Repeat(ref p) => match &**p {
+                &PatAtom(ref a @ Short(_)) | &PatAtom(ref a @ Long(_)) => {
                     let mut bases = self.states(p, init);
                     for base in &mut bases {
-                        let argv_count = self.argv.counts.get(a)
-                                             .map_or(0, |&x| x);
-                        let max_count = base.max_counts.get(a)
-                                            .map_or(0, |&x| x);
+                        let argv_count = self.argv.counts.get(a).map_or(0, |&x| x);
+                        let max_count = base.max_counts.get(a).map_or(0, |&x| x);
                         if argv_count > max_count {
                             for _ in max_count..argv_count {
                                 base.use_optional_flag(a);
@@ -1367,17 +1407,14 @@ impl<'a, 'b> Matcher<'a, 'b> {
                     bases
                 }
                 _ => {
-                    let mut grouped_states = vec!(self.states(p, init));
+                    let mut grouped_states = vec![self.states(p, init)];
                     loop {
-                        let mut nextss = vec!();
+                        let mut nextss = vec![];
                         for s in grouped_states.last().unwrap().iter() {
-                            nextss.extend(
-                                self.states(p, s)
-                                    .into_iter()
-                                    .filter(|snext| snext != s));
+                            nextss.extend(self.states(p, s).into_iter().filter(|snext| snext != s));
                         }
                         if nextss.is_empty() {
-                            break
+                            break;
                         }
                         grouped_states.push(nextss);
                     }
@@ -1386,39 +1423,35 @@ impl<'a, 'b> Matcher<'a, 'b> {
                         .flat_map(std::iter::IntoIterator::into_iter)
                         .collect::<Vec<MState>>()
                 }
-            }}
+            },
             PatAtom(ref atom) => {
                 let mut state = init.clone();
                 match *atom {
                     Short(_) | Long(_) => {
                         if !state.use_flag(atom) {
-                            return vec!()
+                            return vec![];
                         }
                     }
                     Command(_) | Positional(_) => {
-                        let tok =
-                            match self.token_from(init) {
-                                None => return vec!(),
-                                Some(tok) => tok,
-                            };
-                        let tok =
-                            match state.match_cmd_or_posarg(atom, tok) {
-                                None => return vec!(),
-                                Some(tok) => tok,
-                            };
-                        if !self.add_value(&mut state, atom,
-                                           &tok.atom, &tok.arg) {
-                            return vec!()
+                        let tok = match self.token_from(init) {
+                            None => return vec![],
+                            Some(tok) => tok,
+                        };
+                        let tok = match state.match_cmd_or_posarg(atom, tok) {
+                            None => return vec![],
+                            Some(tok) => tok,
+                        };
+                        if !self.add_value(&mut state, atom, &tok.atom, &tok.arg) {
+                            return vec![];
                         }
                     }
                 }
-                vec!(state)
+                vec![state]
             }
         }
     }
 
-    fn all_option_states(&self, base: &MState, states: &mut Vec<MState>,
-                         pats: &[&Pattern]) {
+    fn all_option_states(&self, base: &MState, states: &mut Vec<MState>, pats: &[&Pattern]) {
         if pats.is_empty() {
             states.push(base.clone());
         } else {
@@ -1445,8 +1478,11 @@ fn parse_long_equal(flag: &str) -> Result<(Atom, Argument), String> {
         Some(cap) => {
             let arg = cap_or_empty(&cap, "arg");
             if !Atom::is_arg(arg) {
-                err!("Argument '{}' for flag '{}' is not in the \
-                      form ARG or <arg>.", flag, arg)
+                err!(
+                    "Argument '{}' for flag '{}' is not in the form ARG or <arg>.",
+                    flag,
+                    arg
+                )
             }
             Ok((Atom::new(cap_or_empty(&cap, "name")), One(None)))
         }
@@ -1479,7 +1515,7 @@ fn pattern_tokens(pat: &str) -> Vec<String> {
     }
 
     let pat = NORMALIZE.replace_all(pat.trim(), " $0 ");
-    let mut words = vec!();
+    let mut words = vec![];
     for cap in WORDS.captures_iter(&pat) {
         words.push(cap[0].to_string());
     }
