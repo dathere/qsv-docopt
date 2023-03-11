@@ -220,7 +220,7 @@ impl Docopt {
     pub fn parse(&self) -> Result<ArgvMap> {
         let argv = self.argv.clone().unwrap_or_else(Docopt::get_argv);
         let vals =
-            self.p.parse_argv(argv, self.options_first)
+            self.p.parse_argv(&argv, self.options_first)
                 .map_err(|s| self.err_with_usage(Argv(s)))
                 .and_then(|argv|
                     match self.p.matches(&argv) {

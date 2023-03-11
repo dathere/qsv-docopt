@@ -94,7 +94,7 @@ impl Parser {
         None
     }
 
-    pub fn parse_argv(&self, argv: Vec<String>, options_first: bool)
+    pub fn parse_argv(&self, argv: &[String], options_first: bool)
                          -> Result<Argv<'_>, String> {
         Argv::new(self, &argv, options_first)
     }
