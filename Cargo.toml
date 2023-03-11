@@ -24,6 +24,6 @@ test = false
 
 [dependencies]
 lazy_static = "1.4"
-regex = { version = "1.7", default-features = false, features = ["std", "unicode"] }
+regex = { version = "1.7", default-features = false, features = ["std", "unicode", "perf"] }
 serde = { version = "1", features = ["derive"] }
 strsim = "0.10"
