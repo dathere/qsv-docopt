@@ -279,8 +279,8 @@ impl Parser {
         let opts =
             self.descs
             .find_mut(last_atom)
-            .expect(&format!("BUG: last opt desc key ('{:?}') is invalid.",
-                              last_atom));
+            .unwrap_or_else(|| panic!("BUG: last opt desc key ('{:?}') is invalid.",
+                                       last_atom));
         match opts.arg {
             One(None) => {}, // OK
             Zero =>
