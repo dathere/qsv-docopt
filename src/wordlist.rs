@@ -71,7 +71,7 @@ fn main() {
 fn run(args: Args) -> Result<(), String> {
     let mut usage = String::new();
     io::stdin().read_to_string(&mut usage).map_err(|e| e.to_string())?;
-    let parsed = Parser::new(&usage).map_err(|e| e)?;
+    let parsed = Parser::new(&usage)?;
     let arg_possibles: HashMap<String, Vec<String>> =
         args.arg_name.iter()
                      .zip(args.arg_possibles.iter())
