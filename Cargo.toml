@@ -17,7 +17,7 @@ edition = "2021"
 name = "qsv_docopt"
 
 [[bin]]
-name = "qsv-docopt-wordlist"
+name = "docopt-wordlist"
 path = "src/wordlist.rs"
 doc = false
 test = false
