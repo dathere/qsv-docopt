@@ -200,7 +200,7 @@ impl Docopt {
     pub fn deserialize<'a, 'de: 'a, D>(&'a self) -> Result<D>
         where D: de::Deserialize<'de>
     {
-        self.parse().and_then(dopt::ArgvMap::deserialize)
+        self.parse().and_then(ArgvMap::deserialize)
     }
 
     /// Parse command line arguments and try to match them against a usage
@@ -388,25 +388,25 @@ impl ArgvMap {
     /// Finds the value corresponding to `key` and calls `as_bool()` on it.
     /// If the key does not exist, `false` is returned.
     pub fn get_bool(&self, key: &str) -> bool {
-        self.find(key).map_or(false, |v| v.as_bool())
+        self.find(key).map_or(false, Value::as_bool)
     }
 
     /// Finds the value corresponding to `key` and calls `as_count()` on it.
     /// If the key does not exist, `0` is returned.
     pub fn get_count(&self, key: &str) -> u64 {
-        self.find(key).map_or(0, |v| v.as_count())
+        self.find(key).map_or(0, Value::as_count)
     }
 
     /// Finds the value corresponding to `key` and calls `as_str()` on it.
     /// If the key does not exist, `""` is returned.
     pub fn get_str(&self, key: &str) -> &str {
-        self.find(key).map_or("", |v| v.as_str())
+        self.find(key).map_or("", Value::as_str)
     }
 
     /// Finds the value corresponding to `key` and calls `as_vec()` on it.
     /// If the key does not exist, `vec!()` is returned.
     pub fn get_vec(&self, key: &str) -> Vec<&str> {
-        self.find(key).map(|v| v.as_vec()).unwrap_or_default()
+        self.find(key).map(Value::as_vec).unwrap_or_default()
     }
 
     /// Return the raw value corresponding to some `key`.
