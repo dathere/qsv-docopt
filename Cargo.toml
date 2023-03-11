@@ -10,7 +10,7 @@ readme = "README.md"
 keywords = ["docopt", "argument", "command", "argv"]
 categories = ["command-line-interface"]
 license = "Unlicense/MIT"
-exclude = ["/.travis.yml", "/Makefile", "/ctags.rust", "/scripts/*", "/session.vim"]
+exclude = ["/Makefile", "/scripts/*"]
 edition = "2021"
 
 [lib]
