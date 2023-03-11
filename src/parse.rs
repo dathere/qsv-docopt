@@ -639,6 +639,7 @@ enum Pattern {
     PatAtom(Atom),
 }
 
+#[allow(clippy::derive_ord_xor_partial_ord)]
 #[derive(PartialEq, Eq, Ord, Hash, Clone, Debug)]
 pub enum Atom {
     Short(char),
