@@ -79,7 +79,7 @@ fn run(args: Args) -> Result<(), String> {
                          let choices = Regex::new(r"[ \t]+")
                              .unwrap()
                              .split(possibles)
-                             .map(|s| s.to_string())
+                             .map(std::string::ToString::to_string)
                              .collect::<Vec<String>>();
                          (name.clone(), choices)
                      })
