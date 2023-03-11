@@ -38,7 +38,6 @@
 //
 //   - Write a specification for Docopt.
 
-use std::borrow::ToOwned;
 use std::collections::{HashMap, HashSet};
 use std::collections::hash_map::Entry::{Vacant, Occupied};
 use std::cmp::Ordering;
@@ -1260,7 +1259,7 @@ impl<'a, 'b> Matcher<'a, 'b> {
                 (true, &One(Some(ref v))) => {
                     let words = SPLIT_SPACE
                                 .split(v)
-                                .map(|s| s.to_owned())
+                                .map(std::borrow::ToOwned::to_owned)
                                 .collect();
                     vs.insert(atom, List(words));
                 }
