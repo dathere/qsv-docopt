@@ -1,7 +1,7 @@
-use docopt::Docopt;
+use qsv_docopt::Docopt;
 use serde::Deserialize;
 
-const USAGE: &'static str = "
+const USAGE: &str = "
 Naval Fate.
 
 Usage:

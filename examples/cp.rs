@@ -1,8 +1,8 @@
-use docopt::Docopt;
+use qsv_docopt::Docopt;
 use serde::Deserialize;
 
 // Write the Docopt usage string.
-const USAGE: &'static str = "
+const USAGE: &str = "
 Usage: cp [-a] <source> <dest>
        cp [-a] <source>... <dir>
 

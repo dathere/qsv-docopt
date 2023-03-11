@@ -59,7 +59,7 @@ impl<K: Eq + Hash, V> SynonymMap<K, V> {
 
 impl<K: Eq + Hash + Clone, V> SynonymMap<K, V> {
     pub fn resolve(&self, k: &K) -> K {
-        self.with_key(k, |k| k.clone())
+        self.with_key(k, std::clone::Clone::clone)
     }
 
     pub fn get<'a>(&'a self, k: &K) -> &'a V {

@@ -1,4 +1,4 @@
-use docopt::Docopt;
+use qsv_docopt::Docopt;
 use serde::Deserialize;
 
 // This shows how to implement multiple levels of verbosity.
@@ -8,7 +8,7 @@ use serde::Deserialize;
 // explicitly.
 //
 // This is unfortunate.
-const USAGE: &'static str = "
+const USAGE: &str = "
 Usage: cp [options] [-v | -vv | -vvv] <source> <dest>
        cp [options] [-v | -vv | -vvv] <source>... <dir>
 

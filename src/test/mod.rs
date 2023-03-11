@@ -74,7 +74,7 @@ Options:
 
 #[test]
 fn regression_issue_12() {
-    const USAGE: &'static str = "
+    const USAGE: &str = "
     Usage:
         whisper info <file>
         whisper update <file> <timestamp> <value>
@@ -100,7 +100,7 @@ fn regression_issue_12() {
 
 #[test]
 fn regression_issue_195() {
-    const USAGE: &'static str = "
+    const USAGE: &str = "
     Usage:
         slow [-abcdefghijklmnopqrs...]
     ";
@@ -119,7 +119,7 @@ fn regression_issue_219() {
         arg_param: Vec<String>,
     }
 
-    const USAGE: &'static str = "
+    const USAGE: &str = "
     Usage:
         encode [-v <type> <param>]...
     ";
@@ -132,7 +132,7 @@ fn regression_issue_219() {
 
 #[test]
 fn test_unit_struct() {
-    const USAGE: &'static str = "
+    const USAGE: &str = "
     Usage:
         cargo version [options]
 

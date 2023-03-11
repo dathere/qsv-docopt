@@ -1,16 +1,13 @@
-# THIS CRATE IS UNMAINTAINED
+# qsv_docopt
 
-This crate is unlikely to see significant future evolution. The primary reason
-to choose this crate for a new project is if you're specifically interested in
-using [docopt](http://docopt.org/) syntax for your project. However, the wider
-docopt project is mostly unmaintained at this point.
+This crate is primarily maintained for the qsv project as its been optimized to
+take advantage of the self-documenting nature of [docopt](http://docopt.org/),
+which [clap](http://docs.rs/clap/) or [structopt](http://docs.rs/structopt/)
+does not provide.
 
-Consider using [clap](http://docs.rs/clap/) or possibly
-[structopt](http://docs.rs/structopt/) instead.
-
-Note that this crate has some significant bugs. The two biggest ones are the
-lack of `OsStr` support and some severe performance problems in not-uncommon
-edge cases.
+As the [docopt.rs](https://github.com/docopt/docopt.rs) project is no longer maintained,
+this crate will be updated as necessary to ensure qsv uses the latest
+features/innovations of Rust with this qsv-optimized version of docopt.
 
 docopt
 ======
@@ -28,7 +25,7 @@ Dual-licensed under MIT or the [UNLICENSE](http://unlicense.org).
 
 ### Documentation
 
-https://docs.rs/docopt
+https://docs.rs/qsv_docopt
 
 
 ### Installation
@@ -37,7 +34,7 @@ This crate is fully compatible with Cargo. Just add it to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-docopt = "1"
+qsv_docopt = "1"
 serde = { version = "1", features = ["derive"] }
 ```
 
@@ -49,7 +46,7 @@ of the named values in the Docopt usage string. Values will be automatically
 converted to those types (or an error will be reported).
 
 ```rust
-use docopt::Docopt;
+use qsv_docopt::Docopt;
 use serde::Deserialize;
 
 const USAGE: &'static str = "
@@ -113,7 +110,7 @@ like `<arg>` or `--flag`. If you prefer this access pattern, then you can use
 conversion manually. Here's the canonical Docopt example with a hash table:
 
 ```rust
-use docopt::Docopt;
+use qsv_docopt::Docopt;
 
 const USAGE: &'static str = "
 Naval Fate.

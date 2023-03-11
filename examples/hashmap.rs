@@ -1,6 +1,6 @@
-use docopt::Docopt;
+use qsv_docopt::Docopt;
 
-const USAGE: &'static str = "
+const USAGE: &str = "
 Naval Fate.
 
 Usage:
