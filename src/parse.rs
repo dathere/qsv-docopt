@@ -490,9 +490,7 @@ impl<'a> PatParser<'a> {
 
             // The only way for a short option to have an argument is if
             // it's specified in an option description.
-            if !self.dopt.has_arg(&atom) {
-                self.add_atom_ifnotexists(Zero, &atom);
-            } else {
+            if self.dopt.has_arg(&atom) {
                 // At this point, the flag MUST have an argument. Therefore,
                 // we interpret the "rest" of the characters as the argument.
                 // If the "rest" is empty, then we peek to find and make sure
@@ -506,6 +504,8 @@ impl<'a> PatParser<'a> {
                 // We either error'd or consumed the rest of the short stack as
                 // an argument.
                 break
+            } else {
+                self.add_atom_ifnotexists(Zero, &atom);
             }
         }
         self.next();
