@@ -1,4 +1,4 @@
-use docopt::Docopt;
+use qsv_docopt::Docopt;
 
 const USAGE: &str = "
 Naval Fate.
