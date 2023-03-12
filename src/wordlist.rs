@@ -1,3 +1,14 @@
+#[macro_use]
+mod utils;
+use self::utils::cap_or_empty;
+
+#[allow(dead_code)]
+mod dopt;
+#[allow(dead_code)]
+mod parse;
+#[allow(dead_code)]
+mod synonym;
+
 use std::{
     collections::HashMap,
     io::{self, Read, Write},
@@ -10,28 +21,6 @@ use crate::{
     dopt::Docopt,
     parse::{Atom, Parser},
 };
-
-macro_rules! regex(
-    ($s:expr) => (regex::Regex::new($s).unwrap());
-);
-
-macro_rules! werr(
-    ($($arg:tt)*) => ({
-        use std::io::{Write, stderr};
-        write!(&mut stderr(), $($arg)*).unwrap();
-    })
-);
-
-fn cap_or_empty<'t>(caps: &regex::Captures<'t>, name: &str) -> &'t str {
-    caps.name(name).map_or("", |m| m.as_str())
-}
-
-#[allow(dead_code)]
-mod dopt;
-#[allow(dead_code)]
-mod parse;
-#[allow(dead_code)]
-mod synonym;
 
 const USAGE: &str = "
 Usage: docopt-wordlist [(<name> <possibles>)] ...
