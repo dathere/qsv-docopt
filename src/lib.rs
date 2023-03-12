@@ -181,27 +181,14 @@
 //! ```
 
 #![crate_name = "qsv_docopt"]
-// #![doc(html_root_url = "http://burntsushi.net/rustdoc/docopt")]
 #![deny(missing_docs)]
 
-pub use crate::dopt::{ArgvMap, Deserializer, Docopt, Error, Value};
-
-macro_rules! werr(
-    ($($arg:tt)*) => ({
-        use std::io::{Write, stderr};
-        write!(&mut stderr(), $($arg)*).unwrap();
-    })
-);
-
-macro_rules! regex(
-    ($s:expr) => (regex::Regex::new($s).unwrap());
-);
-
-fn cap_or_empty<'t>(caps: &regex::Captures<'t>, name: &str) -> &'t str {
-    caps.name(name).map_or("", |m| m.as_str())
-}
+#[macro_use]
+pub mod utils;
+pub use self::utils::*;
 
 mod dopt;
+pub use self::dopt::{ArgvMap, Deserializer, Docopt, Error, Value};
 #[doc(hidden)]
 pub mod parse;
 mod synonym;
