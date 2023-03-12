@@ -23,7 +23,7 @@ doc = false
 test = false
 
 [dependencies]
-lazy_static = "1.4"
+once_cell = "1.17"
 regex = "1.7"
 serde = { version = "1", features = ["derive"] }
 strsim = "0.10"
