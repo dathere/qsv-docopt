@@ -7,8 +7,7 @@ use std::{
     str::FromStr,
 };
 
-use lazy_static::lazy_static;
-use regex::{Captures, Regex};
+use regex::Captures;
 use serde::{de, de::IntoDeserializer};
 
 use self::{
@@ -427,10 +426,10 @@ impl ArgvMap {
     /// guarantee that the result is a valid struct field name.
     #[doc(hidden)]
     pub fn key_to_struct_field(name: &str) -> String {
-        lazy_static! {
-            static ref RE: Regex = regex!(
+        decl_regex! {
+            RE :
                 r"^(?:--?(?P<flag>\S+)|(?:(?P<argu>\p{Lu}+)|<(?P<argb>[^>]+)>)|(?P<cmd>\S+))$"
-            );
+            ;
         }
         fn sanitize(name: &str) -> String {
             name.replace('-', "_")
@@ -460,11 +459,11 @@ impl ArgvMap {
     /// Converts a struct field name to a Docopt key.
     #[doc(hidden)]
     pub fn struct_field_to_key(field: &str) -> String {
-        lazy_static! {
-            static ref FLAG: Regex = regex!(r"^flag_");
-            static ref ARG: Regex = regex!(r"^arg_");
-            static ref LETTERS: Regex = regex!(r"^\p{Lu}+$");
-            static ref CMD: Regex = regex!(r"^cmd_");
+        decl_regex! {
+            FLAG: r"^flag_";
+            ARG: r"^arg_";
+            LETTERS: r"^\p{Lu}+$";
+            CMD: r"^cmd_";
         }
         fn desanitize(name: &str) -> String {
             name.replace('_', "-")
