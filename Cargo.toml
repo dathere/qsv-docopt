@@ -1,6 +1,6 @@
 [package]
 name = "qsv_docopt"
-version = "1.2.1"  #:version
+version = "1.2.2"  #:version
 authors = ["Andrew Gallant <jamslam@gmail.com>", "Joel Natividad <joel@datHere.com>"]
 description = "Command line argument parsing."
 documentation = "https://docs.rs/qsv_docopt"
