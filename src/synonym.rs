@@ -15,6 +15,12 @@ pub struct SynonymMap<K, V> {
     syns: HashMap<K, K>,
 }
 
+impl<K: Eq + Hash, V> Default for SynonymMap<K, V> {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl<K: Eq + Hash, V> SynonymMap<K, V> {
     pub fn new() -> SynonymMap<K, V> {
         SynonymMap {
