@@ -1455,15 +1455,14 @@ fn parse_long_equal(flag: &str) -> Result<(Atom, Argument), String> {
     decl_regex! {
         LONG_EQUAL: "^(?P<name>[^=]+)=(?P<arg>.+)$";
     }
-    match LONG_EQUAL.captures(flag) {
-        None => Ok((Atom::new(flag), Zero)),
-        Some(cap) => {
-            let arg = cap_or_empty(&cap, "arg");
-            if !Atom::is_arg(arg) {
-                err!("Argument '{flag}' for flag '{arg}' is not in the form ARG or <arg>.")
-            }
-            Ok((Atom::new(cap_or_empty(&cap, "name")), One(None)))
+    if let Some(cap) = LONG_EQUAL.captures(flag) {
+        let arg = cap_or_empty(&cap, "arg");
+        if !Atom::is_arg(arg) {
+            err!("Argument '{flag}' for flag '{arg}' is not in the form ARG or <arg>.")
         }
+        Ok((Atom::new(cap_or_empty(&cap, "name")), One(None)))
+    } else {
+        Ok((Atom::new(flag), Zero))
     }
 }
 
@@ -1471,12 +1470,13 @@ fn parse_long_equal_argv(flag: &str) -> (Atom, Option<String>) {
     decl_regex! {
         LONG_EQUAL: "^(?P<name>[^=]+)=(?P<arg>.*)$";
     }
-    match LONG_EQUAL.captures(flag) {
-        None => (Atom::new(flag), None),
-        Some(cap) => (
+    if let Some(cap) = LONG_EQUAL.captures(flag) {
+        (
             Atom::new(cap_or_empty(&cap, "name")),
             Some(cap_or_empty(&cap, "arg").to_string()),
-        ),
+        )
+    } else {
+        (Atom::new(flag), None)
     }
 }
 

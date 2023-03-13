@@ -685,19 +685,18 @@ be one of `cmd_`, `flag_` or `arg_`.",
         <T as FromStr>::Err: Debug,
     {
         let (k, v) = self.pop_key_val()?;
-        match v {
-            Counted(n) => Ok(n.to_string().parse().unwrap()), // lol
-            _ => {
-                let vstr = v.as_str();
-                if vstr.trim().is_empty() {
-                    Ok("0".parse().unwrap()) // lol
-                } else {
-                    match vstr.parse() {
-                        Err(_) => {
-                            derr!("Could not deserialize '{vstr}' to {expect} for '{k}'.")
-                        }
-                        Ok(v) => Ok(v),
+        if let Counted(n) = v {
+            Ok(n.to_string().parse().unwrap())
+        } else {
+            let vstr = v.as_str();
+            if vstr.trim().is_empty() {
+                Ok("0".parse().unwrap()) // lol
+            } else {
+                match vstr.parse() {
+                    Err(_) => {
+                        derr!("Could not deserialize '{vstr}' to {expect} for '{k}'.")
                     }
+                    Ok(v) => Ok(v),
                 }
             }
         }
@@ -705,16 +704,15 @@ be one of `cmd_`, `flag_` or `arg_`.",
 
     fn to_float(&mut self, expect: &str) -> Result<f64> {
         let (k, v) = self.pop_key_val()?;
-        match v {
-            Counted(n) => Ok(n as f64),
-            _ => {
-                let vstr = v.as_str();
-                match vstr.parse() {
-                    Err(_) => {
-                        derr!("Could not deserialize '{vstr}' to {expect} for '{k}'.")
-                    }
-                    Ok(v) => Ok(v),
+        if let Counted(n) = v {
+            Ok(n as f64)
+        } else {
+            let vstr = v.as_str();
+            match vstr.parse() {
+                Err(_) => {
+                    derr!("Could not deserialize '{vstr}' to {expect} for '{k}'.")
                 }
+                Ok(v) => Ok(v),
             }
         }
     }
