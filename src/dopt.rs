@@ -261,7 +261,7 @@ impl Docopt {
     /// position arguments. That is, after the first position argument is
     /// seen, all proceeding arguments are interpreted as positional
     /// arguments unconditionally.
-    pub fn options_first(mut self, yes: bool) -> Docopt {
+    pub const fn options_first(mut self, yes: bool) -> Docopt {
         self.options_first = yes;
         self
     }
@@ -276,7 +276,7 @@ impl Docopt {
     /// Note that for this to work, `--help` must be a valid pattern.
     ///
     /// When disabled, there is no special handling of `--help`.
-    pub fn help(mut self, yes: bool) -> Docopt {
+    pub const fn help(mut self, yes: bool) -> Docopt {
         self.help = yes;
         self
     }
@@ -296,7 +296,7 @@ impl Docopt {
     }
 
     #[doc(hidden)]
-    pub fn parser(&self) -> &Parser {
+    pub const fn parser(&self) -> &Parser {
         &self.p
     }
 

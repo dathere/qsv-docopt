@@ -823,7 +823,7 @@ impl Atom {
     }
 
     // Assigns an integer to each variant of Atom. (For easier sorting.)
-    fn type_as_usize(&self) -> usize {
+    const fn type_as_usize(&self) -> usize {
         match *self {
             Short(_) => 0,
             Long(_) => 1,
@@ -863,7 +863,7 @@ impl fmt::Display for Atom {
 }
 
 impl Options {
-    fn new(rep: bool, arg: Argument) -> Options {
+    const fn new(rep: bool, arg: Argument) -> Options {
         Options {
             repeats: rep,
             arg,
