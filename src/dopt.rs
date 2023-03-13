@@ -688,17 +688,13 @@ be one of `cmd_`, `flag_` or `arg_`.",
         match v {
             Counted(n) => Ok(n.to_string().parse().unwrap()), // lol
             _ => {
-                if v.as_str().trim().is_empty() {
+                let vstr = v.as_str();
+                if vstr.trim().is_empty() {
                     Ok("0".parse().unwrap()) // lol
                 } else {
-                    match v.as_str().parse() {
+                    match vstr.parse() {
                         Err(_) => {
-                            derr!(
-                                "Could not deserialize '{}' to {} for '{}'.",
-                                v.as_str(),
-                                expect,
-                                k
-                            )
+                            derr!("Could not deserialize '{vstr}' to {expect} for '{k}'.")
                         }
                         Ok(v) => Ok(v),
                     }
@@ -711,17 +707,15 @@ be one of `cmd_`, `flag_` or `arg_`.",
         let (k, v) = self.pop_key_val()?;
         match v {
             Counted(n) => Ok(n as f64),
-            _ => match v.as_str().parse() {
-                Err(_) => {
-                    derr!(
-                        "Could not deserialize '{}' to {} for '{}'.",
-                        v.as_str(),
-                        expect,
-                        k
-                    )
+            _ => {
+                let vstr = v.as_str();
+                match vstr.parse() {
+                    Err(_) => {
+                        derr!("Could not deserialize '{vstr}' to {expect} for '{k}'.")
+                    }
+                    Ok(v) => Ok(v),
                 }
-                Ok(v) => Ok(v),
-            },
+            }
         }
     }
 }
@@ -786,7 +780,7 @@ impl<'a, 'de> ::serde::Deserializer<'de> for &'a mut Deserializer<'de> {
         let vstr = v.as_str();
         match vstr.chars().count() {
             1 => visitor.visit_char(vstr.chars().next().unwrap()),
-            _ => derr!("Could not deserialize '{}' into char for '{}'.", vstr, k),
+            _ => derr!("Could not deserialize '{vstr}' into char for '{k}'."),
         }
     }
 

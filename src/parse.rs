@@ -218,10 +218,8 @@ impl Parser {
             if !s.is_empty() {
                 if !short.is_empty() {
                     err!(
-                        "Only one short flag is allowed in an option description, but found '{}' \
-                         and '{}'.",
-                        short,
-                        s
+                        "Only one short flag is allowed in an option description, but found \
+                         '{short}' and '{s}'."
                     )
                 }
                 short = s.into();
@@ -229,10 +227,8 @@ impl Parser {
             if !l.is_empty() {
                 if !long.is_empty() {
                     err!(
-                        "Only one long flag is allowed in an option description, but found '{}' \
-                         and '{}'.",
-                        long,
-                        l
+                        "Only one long flag is allowed in an option description, but found \
+                         '{long}' and '{l}'."
                     )
                 }
                 long = l.into();
@@ -240,7 +236,7 @@ impl Parser {
             if let Some(arg) = flags.name("arg").map(|m| m.as_str()) {
                 if !arg.is_empty() {
                     if !Atom::is_arg(arg) {
-                        err!("Argument '{}' is not of the form ARG or <arg>.", arg)
+                        err!("Argument '{arg}' is not of the form ARG or <arg>.")
                     }
                     has_arg = true; // may be changed to default later
                 }
@@ -251,9 +247,8 @@ impl Parser {
         assert!(last_end <= desc.len());
         if last_end < desc.len() {
             err!(
-                "Extraneous text '{}' in option description '{}'.",
-                &desc[last_end..],
-                desc
+                "Extraneous text '{}' in option description '{desc}'.",
+                &desc[last_end..]
             )
         }
         self.add_desc(&short, &long, has_arg, repeated)?;
@@ -272,11 +267,9 @@ impl Parser {
             Some(c) => cap_or_empty(&c, "val").trim(),
         };
         let last_atom = match self.last_atom_added {
-            None => err!(
-                "Found default value '{}' in '{}' before first option description.",
-                defval,
-                desc
-            ),
+            None => {
+                err!("Found default value '{defval}' in '{desc}' before first option description.")
+            }
             Some(ref atom) => atom,
         };
         let opts = self
@@ -286,15 +279,12 @@ impl Parser {
         match opts.arg {
             One(None) => {} // OK
             Zero => err!(
-                "Cannot assign default value '{}' to flag '{}' that has no arguments.",
-                defval,
-                last_atom
+                "Cannot assign default value '{defval}' to flag '{last_atom}' that has no \
+                 arguments."
             ),
             One(Some(ref curval)) => err!(
-                "Flag '{}' already has a default value of '{}' (second default value: '{}').",
-                last_atom,
-                curval,
-                defval
+                "Flag '{last_atom}' already has a default value of '{curval}' (second default \
+                 value: '{defval}')."
             ),
         }
         opts.arg = One(Some(defval.into()));
@@ -387,7 +377,7 @@ impl<'a> PatParser<'a> {
         let mut p = self.pattern()?;
         match self.expecting.pop() {
             None => {}
-            Some(c) => err!("Unclosed group. Expected '{}'.", c),
+            Some(c) => err!("Unclosed group. Expected '{c}'."),
         }
         p.add_options_shortcut(self.dopt);
         p.tag_repeats(&mut self.dopt.descs);
@@ -423,7 +413,7 @@ impl<'a> PatParser<'a> {
                         None => err!("Unexpected '{}'. No open bracket found.", self.cur()),
                         Some(c) => {
                             if c != self.cur().chars().next().unwrap() {
-                                err!("Expected '{}' but got '{}'.", c, self.cur())
+                                err!("Expected '{c}' but got '{}'.", self.cur())
                             }
                         }
                     }
@@ -536,7 +526,7 @@ impl<'a> PatParser<'a> {
             if arg.has_arg() && !has_arg {
                 // Found `=` in usage, but previous usage of this flag
                 // didn't specify an argument.
-                err!("Flag '{}' does not take any arguments.", atom)
+                err!("Flag '{atom}' does not take any arguments.")
             } else if !arg.has_arg() && has_arg {
                 // Didn't find any `=` in usage for this flag, but previous
                 // usage of this flag specifies an argument.
@@ -564,11 +554,7 @@ impl<'a> PatParser<'a> {
 
     fn errif_invalid_flag_arg(&self, atom: &Atom, arg: &str) -> Result<(), String> {
         if !Atom::is_arg(arg) {
-            err!(
-                "Expected argument for flag '{}', but found malformed argument '{}'.",
-                atom,
-                arg
-            )
+            err!("Expected argument for flag '{atom}', but found malformed argument '{arg}'.")
         }
         Ok(())
     }
@@ -621,7 +607,7 @@ impl<'a> PatParser<'a> {
     fn next_noeof(&mut self, expected: &str) -> Result<(), String> {
         self.next();
         if self.curi == self.tokens.len() {
-            err!("Expected {} but reached end of usage pattern.", expected)
+            err!("Expected {expected} but reached end of usage pattern.")
         }
         Ok(())
     }
@@ -1065,7 +1051,7 @@ impl<'a> Argv<'a> {
     fn next_noeof(&mut self, expected: &str) -> Result<(), String> {
         self.next();
         if self.curi == self.argv.len() {
-            err!("Expected {} but reached end of arguments.", expected)
+            err!("Expected {expected} but reached end of arguments.")
         }
         Ok(())
     }
@@ -1474,11 +1460,7 @@ fn parse_long_equal(flag: &str) -> Result<(Atom, Argument), String> {
         Some(cap) => {
             let arg = cap_or_empty(&cap, "arg");
             if !Atom::is_arg(arg) {
-                err!(
-                    "Argument '{}' for flag '{}' is not in the form ARG or <arg>.",
-                    flag,
-                    arg
-                )
+                err!("Argument '{flag}' for flag '{arg}' is not in the form ARG or <arg>.")
             }
             Ok((Atom::new(cap_or_empty(&cap, "name")), One(None)))
         }
