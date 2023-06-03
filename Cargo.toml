@@ -12,6 +12,7 @@ categories = ["command-line-interface"]
 license = "Unlicense/MIT"
 exclude = ["/Makefile", "/scripts/*"]
 edition = "2021"
+rust-version = "1.70.0"
 
 [lib]
 name = "qsv_docopt"
@@ -23,7 +24,6 @@ doc = false
 test = false
 
 [dependencies]
-once_cell = "1.17"
-regex = "1.7"
+regex = "1.8"
 serde = { version = "1", features = ["derive"] }
 strsim = "0.10"
