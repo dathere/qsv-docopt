@@ -1,12 +1,12 @@
 //! Utilities that needed a home.
 
 /// Wrapper for lazily compiled regexes
-pub struct RegexWrap(&'static str, ::once_cell::sync::OnceCell<::regex::Regex>);
+pub struct RegexWrap(&'static str, ::std::sync::OnceLock<::regex::Regex>);
 
 impl RegexWrap {
     /// Create a new const instances with the given regexp
     pub const fn new(re: &'static str) -> Self {
-        Self(re, ::once_cell::sync::OnceCell::<::regex::Regex>::new())
+        Self(re, ::std::sync::OnceLock::<::regex::Regex>::new())
     }
 }
 
