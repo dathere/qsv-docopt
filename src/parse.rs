@@ -1488,9 +1488,8 @@ fn pattern_tokens(pat: &str) -> Vec<String> {
     }
 
     let pat = NORMALIZE.replace_all(pat.trim(), " $0 ");
-    let mut words = vec![];
-    for cap in WORDS.captures_iter(&pat) {
-        words.push(cap[0].to_string());
-    }
-    words
+    WORDS
+        .captures_iter(&pat)
+        .map(|cap| cap[0].to_string())
+        .collect()
 }
