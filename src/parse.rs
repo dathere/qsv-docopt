@@ -822,15 +822,16 @@ impl Atom {
         IS_CMD_RE.is_match(s)
     }
 
+    // NOTE: NO LONGER NEEDED WHEN WE SIMPLIFIED partial_cmp
     // Assigns an integer to each variant of Atom. (For easier sorting.)
-    const fn type_as_usize(&self) -> usize {
-        match *self {
-            Short(_) => 0,
-            Long(_) => 1,
-            Command(_) => 2,
-            Positional(_) => 3,
-        }
-    }
+    // const fn type_as_usize(&self) -> usize {
+    //     match *self {
+    //         Short(_) => 0,
+    //         Long(_) => 1,
+    //         Command(_) => 2,
+    //         Positional(_) => 3,
+    //     }
+    // }
 }
 
 impl PartialOrd for Atom {
