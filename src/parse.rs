@@ -1316,7 +1316,7 @@ impl<'a, 'b> Matcher<'a, 'b> {
             Alternates(ref ps) => {
                 let mut alt_states = vec![];
                 for p in ps.iter() {
-                    alt_states.extend(self.states(p, init).into_iter());
+                    alt_states.extend(self.states(p, init));
                 }
                 alt_states
             }
