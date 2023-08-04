@@ -700,7 +700,7 @@ impl Pattern {
         fn all_atoms(pat: &Pattern, set: &mut HashSet<Atom>) {
             match *pat {
                 Alternates(ref ps) | Sequence(ref ps) | Optional(ref ps) => {
-                    for p in ps.iter() {
+                    for p in ps {
                         all_atoms(p, set);
                     }
                 }
@@ -730,7 +730,7 @@ impl Pattern {
                     // However, we still need to record seeing each item in
                     // each alternation.
                     let fresh = seen.clone();
-                    for p in ps.iter() {
+                    for p in ps {
                         let mut isolated = fresh.clone();
                         dotag(p, rep, map, &mut isolated);
                         for a in isolated {
@@ -739,12 +739,12 @@ impl Pattern {
                     }
                 }
                 Sequence(ref ps) => {
-                    for p in ps.iter() {
+                    for p in ps {
                         dotag(p, rep, map, seen);
                     }
                 }
                 Optional(ref ps) => {
-                    for p in ps.iter() {
+                    for p in ps {
                         dotag(p, rep, map, seen);
                     }
                 }
