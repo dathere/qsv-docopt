@@ -448,7 +448,7 @@ impl<'a> PatParser<'a> {
                 }
                 _ => {
                     if Atom::is_short(self.cur()) {
-                        seq.extend(self.flag_short()?.into_iter());
+                        seq.extend(self.flag_short()?);
                     } else if Atom::is_long(self.cur()) {
                         seq.push(self.flag_long()?);
                     } else if Atom::is_arg(self.cur()) {
@@ -1325,14 +1325,14 @@ impl<'a, 'b> Matcher<'a, 'b> {
                 let mut iter = ps.iter();
                 match iter.next() {
                     None => return vec![init.clone()],
-                    Some(p) => states.extend(self.states(p, init).into_iter()),
+                    Some(p) => states.extend(self.states(p, init)),
                 }
                 for p in iter {
                     for s in states {
-                        next.extend(self.states(p, &s).into_iter());
+                        next.extend(self.states(p, &s));
                     }
                     states = vec![];
-                    states.extend(next.into_iter());
+                    states.extend(next);
                     next = vec![];
                 }
                 states
