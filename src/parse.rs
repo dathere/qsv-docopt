@@ -835,13 +835,7 @@ impl Atom {
 
 impl PartialOrd for Atom {
     fn partial_cmp(&self, other: &Atom) -> Option<Ordering> {
-        match (self, other) {
-            (&Short(c1), &Short(c2)) => c1.partial_cmp(&c2),
-            (Long(s1), Long(s2)) => s1.partial_cmp(s2),
-            (Command(s1), Command(s2)) => s1.partial_cmp(s2),
-            (Positional(s1), Positional(s2)) => s1.partial_cmp(s2),
-            (a1, a2) => a1.type_as_usize().partial_cmp(&a2.type_as_usize()),
-        }
+        Some(self.cmp(other))
     }
 }
 
