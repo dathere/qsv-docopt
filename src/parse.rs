@@ -685,7 +685,7 @@ impl Pattern {
                             }
                         }
                     } else {
-                        for p in ps.iter_mut() {
+                        for p in &mut *ps {
                             add(p, all_atoms, par);
                         }
                     }
