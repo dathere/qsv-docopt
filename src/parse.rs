@@ -868,7 +868,7 @@ impl Options {
 }
 
 impl Argument {
-    fn has_arg(&self) -> bool {
+    const fn has_arg(&self) -> bool {
         match *self {
             Zero => false,
             One(_) => true,
