@@ -1315,7 +1315,7 @@ impl<'a, 'b> Matcher<'a, 'b> {
         match *pat {
             Alternates(ref ps) => {
                 let mut alt_states = vec![];
-                for p in ps.iter() {
+                for p in ps {
                     alt_states.extend(self.states(p, init));
                 }
                 alt_states
@@ -1340,7 +1340,7 @@ impl<'a, 'b> Matcher<'a, 'b> {
             Optional(ref ps) => {
                 let mut base = init.clone();
                 let mut noflags = vec![];
-                for p in ps.iter() {
+                for p in ps {
                     match p {
                         // Prevent exponential growth in cases like [--flag...]
                         // See https://github.com/docopt/docopt.rs/issues/195
@@ -1392,7 +1392,7 @@ impl<'a, 'b> Matcher<'a, 'b> {
                     let mut grouped_states = vec![self.states(p, init)];
                     loop {
                         let mut nextss = vec![];
-                        for s in grouped_states.last().unwrap().iter() {
+                        for s in grouped_states.last().unwrap() {
                             nextss.extend(self.states(p, s).into_iter().filter(|snext| snext != s));
                         }
                         if nextss.is_empty() {
