@@ -35,6 +35,7 @@ macro_rules! werr(
 );
 
 /// return the value of a capture group or an empty string
+#[inline]
 pub fn cap_or_empty<'t>(caps: &regex::Captures<'t>, name: &str) -> &'t str {
     caps.name(name).map_or("", |m| m.as_str())
 }
