@@ -17,7 +17,7 @@ impl ::std::ops::Deref for RegexWrap {
     }
 }
 
-/// Declares a lazy static regex
+/// Declares a OnceLock regex
 macro_rules! decl_regex {
     ($($name:ident : $re:literal; )*) => {
         $(
