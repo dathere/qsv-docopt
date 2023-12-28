@@ -130,11 +130,14 @@ impl Parser {
             None => err!("Could not find usage patterns in doc string."),
             Some(caps) => caps,
         };
-        if cap_or_empty(&caps, "prog").is_empty() {
+
+        let prog = cap_or_empty(&caps, "prog");
+        if prog.is_empty() {
             err!("Could not find program name in doc string.")
         }
-        self.program = cap_or_empty(&caps, "prog").to_string();
-        self.usage = caps[0].to_string();
+
+        self.program = prog.to_owned();
+        self.usage = caps.get(0).unwrap().as_str().to_owned();
 
         // Before we parse the usage patterns, we look for option descriptions.
         // We do this because the information in option descriptions can be
@@ -159,15 +162,16 @@ impl Parser {
 
         let mprog = format!(
             "^(?:{})?\\s*(.*?)\\s*$",
-            regex::escape(cap_or_empty(&caps, "prog"))
+            regex::escape(prog)
         );
         let pats = Regex::new(&mprog).unwrap();
 
-        if cap_or_empty(&caps, "pats").is_empty() {
+        let pats_str = cap_or_empty(&caps, "pats");
+        if pats_str.is_empty() {
             let pattern = PatParser::new(self, "").parse()?;
             self.usages.push(pattern);
         } else {
-            for line in cap_or_empty(&caps, "pats").lines() {
+            for line in pats_str.lines() {
                 for pat in pats.captures_iter(line.trim()) {
                     let pattern = PatParser::new(self, &pat[1]).parse()?;
                     self.usages.push(pattern);
@@ -928,10 +932,11 @@ impl<'a> Argv<'a> {
     fn parse(&mut self) -> Result<(), String> {
         let mut seen_double_dash = false;
         while self.curi < self.argv.len() {
+            let current_arg = self.cur();
             let do_flags = !seen_double_dash && (!self.options_first || self.positional.is_empty());
 
-            if do_flags && Atom::is_short(self.cur()) {
-                let stacked: String = self.cur()[1..].into();
+            if do_flags && Atom::is_short(current_arg) {
+                let stacked: String = current_arg[1..].into();
                 for (i, c) in stacked.chars().enumerate() {
                     let mut tok = ArgvToken {
                         atom: self.dopt.descs.resolve(&Short(c)),
@@ -956,8 +961,8 @@ impl<'a> Argv<'a> {
                         self.flags.push(tok);
                     }
                 }
-            } else if do_flags && Atom::is_long_argv(self.cur()) {
-                let (atom, mut arg) = parse_long_equal_argv(self.cur());
+            } else if do_flags && Atom::is_long_argv(current_arg) {
+                let (atom, mut arg) = parse_long_equal_argv(current_arg);
                 let atom = self.dopt.descs.resolve(&atom);
                 if !self.dopt.descs.contains_key(&atom) {
                     return self.err_unknown_flag(&atom);
@@ -973,7 +978,7 @@ impl<'a> Argv<'a> {
                     arg = Some(self.cur().into());
                 }
                 self.flags.push(ArgvToken { atom, arg });
-            } else if !seen_double_dash && self.cur() == "--" {
+            } else if !seen_double_dash && current_arg == "--" {
                 seen_double_dash = true;
             } else {
                 // Yup, we *always* insert a positional argument, which
@@ -981,7 +986,7 @@ impl<'a> Argv<'a> {
                 // This is because we can't tell whether something is a
                 // `command` or not until we start pattern matching.
                 let tok = ArgvToken {
-                    atom: Positional(self.cur().into()),
+                    atom: Positional(current_arg.into()),
                     arg:  None,
                 };
                 self.positional.push(tok);
