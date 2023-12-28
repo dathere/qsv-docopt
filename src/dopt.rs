@@ -642,6 +642,7 @@ macro_rules! derr(
 );
 
 impl<'de> Deserializer<'de> {
+    #[inline]
     fn push(&mut self, struct_field: &'de str) {
         let key = ArgvMap::struct_field_to_key(struct_field);
         self.stack.push(DeserializerItem {
@@ -651,6 +652,7 @@ impl<'de> Deserializer<'de> {
         });
     }
 
+    #[inline]
     fn pop(&mut self) -> Result<DeserializerItem<'_>> {
         match self.stack.pop() {
             None => derr!("Could not deserialize value into unknown key."),
@@ -658,6 +660,7 @@ impl<'de> Deserializer<'de> {
         }
     }
 
+    #[inline]
     fn pop_key_val(&mut self) -> Result<(String, Value)> {
         let it = self.pop()?;
         match it.val {
@@ -674,6 +677,7 @@ be one of `cmd_`, `flag_` or `arg_`.",
         }
     }
 
+    #[inline]
     fn pop_val(&mut self) -> Result<Value> {
         let (_, v) = self.pop_key_val()?;
         Ok(v)
