@@ -1205,19 +1205,16 @@ impl<'a, 'b> Matcher<'a, 'b> {
             .filter(|s| m.state_consumed_all_argv(s))
             .filter(|s| m.state_has_valid_flags(s))
             .filter(|s| m.state_valid_num_flags(s))
-            .collect::<Vec<MState>>()
-            .into_iter()
             .next()
             .map(|mut s| {
                 m.add_flag_values(&mut s);
                 m.add_default_values(&mut s);
 
                 // Build a synonym map so that it's easier to look up values.
-                let mut synmap: SynonymMap<String, Value> = s
-                    .vals
-                    .into_iter()
-                    .map(|(k, v)| (k.to_string(), v))
-                    .collect();
+                let mut synmap: SynonymMap<String, Value> = SynonymMap::new();
+                for (k, v) in s.vals {
+                    synmap.insert(k.to_string(), v);
+                }
                 for (from, to) in argv.dopt.descs.synonyms() {
                     let (from, to) = (from.to_string(), to.to_string());
                     if synmap.contains_key(&to) {
