@@ -255,7 +255,7 @@ impl Parser {
                 &desc[last_end..]
             )
         }
-        self.add_desc(&short, &long, has_arg, repeated)?;
+        self.add_desc(&short, &long, has_arg, repeated);
         // Looking for default in this line must come after adding the
         // description, otherwise `parse_default` won't know which option
         // to assign it to.
@@ -301,12 +301,12 @@ impl Parser {
         long: &str,
         has_arg: bool,
         repeated: bool,
-    ) -> Result<(), String> {
+    ) {
         assert!(!short.is_empty() || !long.is_empty());
         if !short.is_empty() && short.chars().count() != 2 {
             // It looks like the reference implementation just ignores
             // these lines.
-            return Ok(());
+            return;
         }
         let mut opts = Options::new(repeated, if has_arg { One(None) } else { Zero });
         opts.is_desc = true;
@@ -325,7 +325,6 @@ impl Parser {
             self.descs.insert(long.clone(), opts);
             self.last_atom_added = Some(long);
         }
-        Ok(())
     }
 }
 
