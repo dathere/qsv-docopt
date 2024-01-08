@@ -1204,8 +1204,7 @@ impl<'a, 'b> Matcher<'a, 'b> {
             .into_iter()
             .filter(|s| m.state_consumed_all_argv(s))
             .filter(|s| m.state_has_valid_flags(s))
-            .filter(|s| m.state_valid_num_flags(s))
-            .next()
+            .find(|s| m.state_valid_num_flags(s))
             .map(|mut s| {
                 m.add_flag_values(&mut s);
                 m.add_default_values(&mut s);
