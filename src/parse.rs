@@ -1053,7 +1053,7 @@ struct Matcher<'a, 'b: 'a> {
 
 #[derive(Clone, Debug, PartialEq)]
 struct MState {
-    argvi:      usize,                // index into Argv.positional
+    argvi:      usize,                 // index into Argv.positional
     counts:     AHashMap<Atom, usize>, // flags remaining for pattern consumption
     max_counts: AHashMap<Atom, usize>, // optional flag appearances
     vals:       AHashMap<Atom, Value>,
