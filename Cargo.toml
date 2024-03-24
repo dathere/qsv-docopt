@@ -1,7 +1,10 @@
 [package]
 name = "qsv_docopt"
-version = "1.6.0"  #:version
-authors = ["Andrew Gallant <jamslam@gmail.com>", "Joel Natividad <joel@datHere.com>"]
+version = "1.6.0" #:version
+authors = [
+    "Andrew Gallant <jamslam@gmail.com>",
+    "Joel Natividad <joel@datHere.com>",
+]
 description = "Command line argument parsing."
 documentation = "https://docs.rs/qsv_docopt"
 homepage = "https://github.com/jqnatividad/docopt.rs"
@@ -20,11 +23,11 @@ name = "qsv_docopt"
 [[bin]]
 name = "docopt-wordlist"
 path = "src/wordlist.rs"
-doc = false
+doc  = false
 test = false
 
 [dependencies]
-regex = "1"
-serde = { version = "1", features = ["derive"] }
+regex  = "1"
+serde  = { version = "1", features = ["derive"] }
 strsim = "0.11"
-ahash = "0.8"
+ahash  = "0.8"
