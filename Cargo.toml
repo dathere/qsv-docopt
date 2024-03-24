@@ -12,7 +12,7 @@ categories = ["command-line-interface"]
 license = "Unlicense/MIT"
 exclude = ["/Makefile", "/scripts/*"]
 edition = "2021"
-rust-version = "1.75.0"
+rust-version = "1.77.0"
 
 [lib]
 name = "qsv_docopt"

@@ -136,8 +136,8 @@ impl Parser {
             err!("Could not find program name in doc string.")
         }
 
-        self.program = prog.to_owned();
-        self.usage = caps.get(0).unwrap().as_str().to_owned();
+        prog.clone_into(&mut self.program);
+        caps.get(0).unwrap().as_str().clone_into(&mut self.usage);
 
         // Before we parse the usage patterns, we look for option descriptions.
         // We do this because the information in option descriptions can be
@@ -160,10 +160,7 @@ impl Parser {
             self.parse_desc(line)?;
         }
 
-        let mprog = format!(
-            "^(?:{})?\\s*(.*?)\\s*$",
-            regex::escape(prog)
-        );
+        let mprog = format!("^(?:{})?\\s*(.*?)\\s*$", regex::escape(prog));
         let pats = Regex::new(&mprog).unwrap();
 
         let pats_str = cap_or_empty(&caps, "pats");
@@ -295,13 +292,7 @@ impl Parser {
         Ok(())
     }
 
-    fn add_desc(
-        &mut self,
-        short: &str,
-        long: &str,
-        has_arg: bool,
-        repeated: bool,
-    ) {
+    fn add_desc(&mut self, short: &str, long: &str, has_arg: bool, repeated: bool) {
         assert!(!short.is_empty() || !long.is_empty());
         if !short.is_empty() && short.chars().count() != 2 {
             // It looks like the reference implementation just ignores
@@ -398,7 +389,7 @@ impl<'a> PatParser<'a> {
                 "-" | "--" => {
                     // As per specification, `-` and `--` by themselves are
                     // just commands that should be interpreted conventionally.
-                    seq.push(self.command()?);
+                    seq.push(self.command());
                 }
                 "|" => {
                     if seq.is_empty() {
@@ -458,9 +449,9 @@ impl<'a> PatParser<'a> {
                         // These are always positional.
                         // Arguments for -s and --short are picked up
                         // when parsing flags.
-                        seq.push(self.positional()?);
+                        seq.push(self.positional());
                     } else if Atom::is_cmd(self.cur()) {
-                        seq.push(self.command()?);
+                        seq.push(self.command());
                     } else {
                         err!("Unknown token type '{}'.", self.cur())
                     }
@@ -502,9 +493,8 @@ impl<'a> PatParser<'a> {
                 // We either error'd or consumed the rest of the short stack as
                 // an argument.
                 break;
-            } else {
-                self.add_atom_ifnotexists(Zero, &atom);
             }
+            self.add_atom_ifnotexists(Zero, &atom);
         }
         self.next();
         // This is a little weird. We've got to manually look for a repeat
@@ -562,18 +552,18 @@ impl<'a> PatParser<'a> {
         Ok(())
     }
 
-    fn command(&mut self) -> Result<Pattern, String> {
+    fn command(&mut self) -> Pattern {
         let atom = Atom::new(self.cur());
         self.add_atom_ifnotexists(Zero, &atom);
         self.next();
-        Ok(self.maybe_repeat(PatAtom(atom)))
+        self.maybe_repeat(PatAtom(atom))
     }
 
-    fn positional(&mut self) -> Result<Pattern, String> {
+    fn positional(&mut self) -> Pattern {
         let atom = Atom::new(self.cur());
         self.add_atom_ifnotexists(Zero, &atom);
         self.next();
-        Ok(self.maybe_repeat(PatAtom(atom)))
+        self.maybe_repeat(PatAtom(atom))
     }
 
     fn add_atom_ifnotexists(&mut self, arg: Argument, atom: &Atom) {
@@ -741,12 +731,7 @@ impl Pattern {
                         }
                     }
                 }
-                Sequence(ref ps) => {
-                    for p in ps {
-                        dotag(p, rep, map, seen);
-                    }
-                }
-                Optional(ref ps) => {
+                Sequence(ref ps) | Optional(ref ps) => {
                     for p in ps {
                         dotag(p, rep, map, seen);
                     }
@@ -956,9 +941,8 @@ impl<'a> Argv<'a> {
                         // We've either produced an error or gobbled up the
                         // rest of these stacked short flags, so stop.
                         break;
-                    } else {
-                        self.flags.push(tok);
                     }
+                    self.flags.push(tok);
                 }
             } else if do_flags && Atom::is_long_argv(current_arg) {
                 let (atom, mut arg) = parse_long_equal_argv(current_arg);
@@ -1026,9 +1010,8 @@ impl<'a> Argv<'a> {
         }
         if best.is_empty() {
             err!("Unknown flag: '{}'", &atom);
-        } else {
-            err!("Unknown flag: '{}'. Did you mean '{}'?", &atom, &best)
         }
+        err!("Unknown flag: '{}'. Did you mean '{}'?", &atom, &best)
     }
 
     fn cur(&self) -> &str {
@@ -1042,6 +1025,7 @@ impl<'a> Argv<'a> {
             self.curi += 1;
         }
     }
+    #[inline]
     fn next_arg(&mut self, atom: &Atom) -> Result<&str, String> {
         let expected = format!("argument for flag '{atom}'");
         self.next_noeof(&expected)?;
@@ -1110,6 +1094,7 @@ impl MState {
         true
     }
 
+    #[inline]
     fn add_value(
         &mut self,
         opts: &Options,
@@ -1134,6 +1119,7 @@ impl MState {
         }
     }
 
+    #[inline]
     fn use_flag(&mut self, flag: &Atom) -> bool {
         match self.max_counts.entry(flag.clone()) {
             Vacant(v) => {
@@ -1155,6 +1141,7 @@ impl MState {
         }
     }
 
+    #[inline]
     fn use_optional_flag(&mut self, flag: &Atom) {
         match self.max_counts.entry(flag.clone()) {
             Vacant(v) => {
@@ -1166,6 +1153,7 @@ impl MState {
         }
     }
 
+    #[inline]
     fn match_cmd_or_posarg(&mut self, spec: &Atom, argv: &ArgvToken) -> Option<ArgvToken> {
         match (spec, &argv.atom) {
             (_, &Command(_)) => {
@@ -1228,6 +1216,7 @@ impl<'a, 'b> Matcher<'a, 'b> {
         self.argv.positional.get(state.argvi)
     }
 
+    #[inline]
     fn add_value(
         &self,
         state: &mut MState,
@@ -1239,12 +1228,14 @@ impl<'a, 'b> Matcher<'a, 'b> {
         state.add_value(opts, atom_spec, atom, arg)
     }
 
+    #[inline]
     fn add_flag_values(&self, state: &mut MState) {
         for tok in &self.argv.flags {
             self.add_value(state, &tok.atom, &tok.atom, &tok.arg);
         }
     }
 
+    #[inline]
     fn add_default_values(&self, state: &mut MState) {
         decl_regex! {
             SPLIT_SPACE: r"\s+";
@@ -1288,10 +1279,12 @@ impl<'a, 'b> Matcher<'a, 'b> {
         }
     }
 
+    #[inline]
     fn state_consumed_all_argv(&self, state: &MState) -> bool {
         self.argv.positional.len() == state.argvi
     }
 
+    #[inline]
     fn state_has_valid_flags(&self, state: &MState) -> bool {
         self.argv
             .counts
@@ -1299,6 +1292,7 @@ impl<'a, 'b> Matcher<'a, 'b> {
             .all(|flag| state.max_counts.contains_key(flag))
     }
 
+    #[inline]
     fn state_valid_num_flags(&self, state: &MState) -> bool {
         state
             .counts
@@ -1306,6 +1300,7 @@ impl<'a, 'b> Matcher<'a, 'b> {
             .all(|(flag, count)| count <= &state.max_counts[flag])
     }
 
+    #[inline]
     fn states(&self, pat: &Pattern, init: &MState) -> Vec<MState> {
         match *pat {
             Alternates(ref ps) => {
@@ -1428,6 +1423,7 @@ impl<'a, 'b> Matcher<'a, 'b> {
         }
     }
 
+    #[inline]
     fn all_option_states(&self, base: &MState, states: &mut Vec<MState>, pats: &[&Pattern]) {
         if pats.is_empty() {
             states.push(base.clone());
