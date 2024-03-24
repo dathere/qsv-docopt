@@ -35,13 +35,11 @@
 
 use std::{
     cmp::Ordering,
-    collections::{
-        hash_map::Entry::{Occupied, Vacant},
-        HashMap, HashSet,
-    },
+    collections::hash_map::Entry::{Occupied, Vacant},
     fmt,
 };
 
+use ahash::{AHashMap, AHashSet};
 use regex::Regex;
 use strsim::levenshtein;
 
@@ -657,7 +655,7 @@ pub enum Argument {
 
 impl Pattern {
     fn add_options_shortcut(&mut self, par: &Parser) {
-        fn add(pat: &mut Pattern, all_atoms: &HashSet<Atom>, par: &Parser) {
+        fn add(pat: &mut Pattern, all_atoms: &AHashSet<Atom>, par: &Parser) {
             match *pat {
                 Alternates(ref mut ps) | Sequence(ref mut ps) => {
                     for p in ps.iter_mut() {
@@ -689,8 +687,8 @@ impl Pattern {
         add(self, &all_atoms, par);
     }
 
-    fn all_atoms(&self) -> HashSet<Atom> {
-        fn all_atoms(pat: &Pattern, set: &mut HashSet<Atom>) {
+    fn all_atoms(&self) -> AHashSet<Atom> {
+        fn all_atoms(pat: &Pattern, set: &mut AHashSet<Atom>) {
             match *pat {
                 Alternates(ref ps) | Sequence(ref ps) | Optional(ref ps) => {
                     for p in ps {
@@ -703,7 +701,7 @@ impl Pattern {
                 }
             }
         }
-        let mut set = HashSet::new();
+        let mut set = AHashSet::new();
         all_atoms(self, &mut set);
         set
     }
@@ -713,7 +711,7 @@ impl Pattern {
             p: &Pattern,
             rep: bool,
             map: &mut SynonymMap<Atom, Options>,
-            seen: &mut HashSet<Atom>,
+            seen: &mut AHashSet<Atom>,
         ) {
             match *p {
                 Alternates(ref ps) => {
@@ -744,7 +742,7 @@ impl Pattern {
                 }
             }
         }
-        let mut seen = HashSet::new();
+        let mut seen = AHashSet::new();
         dotag(self, false, map, &mut seen);
     }
 
@@ -873,7 +871,7 @@ pub struct Argv<'a> {
     /// Each flag may have an argument string.
     flags:      Vec<ArgvToken>,
     /// Counts the number of times each flag appears.
-    counts:     HashMap<Atom, usize>,
+    counts:     AHashMap<Atom, usize>,
 
     // State for parser.
     dopt:          &'a Parser,
@@ -893,7 +891,7 @@ impl<'a> Argv<'a> {
         let mut a = Argv {
             positional: vec![],
             flags: vec![],
-            counts: HashMap::new(),
+            counts: AHashMap::new(),
             dopt,
             argv: argv.to_vec(),
             curi: 0,
@@ -1056,9 +1054,9 @@ struct Matcher<'a, 'b: 'a> {
 #[derive(Clone, Debug, PartialEq)]
 struct MState {
     argvi:      usize,                // index into Argv.positional
-    counts:     HashMap<Atom, usize>, // flags remaining for pattern consumption
-    max_counts: HashMap<Atom, usize>, // optional flag appearances
-    vals:       HashMap<Atom, Value>,
+    counts:     AHashMap<Atom, usize>, // flags remaining for pattern consumption
+    max_counts: AHashMap<Atom, usize>, // optional flag appearances
+    vals:       AHashMap<Atom, Value>,
 }
 
 impl MState {
@@ -1185,8 +1183,8 @@ impl<'a, 'b> Matcher<'a, 'b> {
         let init = MState {
             argvi:      0,
             counts:     argv.counts.clone(),
-            max_counts: HashMap::new(),
-            vals:       HashMap::new(),
+            max_counts: AHashMap::new(),
+            vals:       AHashMap::new(),
         };
         m.states(pat, &init)
             .into_iter()

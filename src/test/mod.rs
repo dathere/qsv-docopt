@@ -1,5 +1,4 @@
-use std::collections::HashMap;
-
+use ahash::AHashMap;
 use serde::Deserialize;
 
 use crate::{
@@ -18,11 +17,11 @@ fn get_args(doc: &str, argv: &[&'static str]) -> ArgvMap {
     }
 }
 
-fn map_from_alist(alist: Vec<(&'static str, Value)>) -> HashMap<String, Value> {
+fn map_from_alist(alist: Vec<(&'static str, Value)>) -> AHashMap<String, Value> {
     alist.into_iter().map(|(k, v)| (k.to_string(), v)).collect()
 }
 
-fn same_args(expected: &HashMap<String, Value>, got: &ArgvMap) {
+fn same_args(expected: &AHashMap<String, Value>, got: &ArgvMap) {
     for (k, ve) in expected.iter() {
         match got.map.find(k) {
             None => panic!("EXPECTED has '{}' but GOT does not.", k),

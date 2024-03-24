@@ -1,5 +1,4 @@
 use std::{
-    collections::HashMap,
     error::Error as StdError,
     fmt::{self, Debug},
     io::{self, Write},
@@ -7,6 +6,7 @@ use std::{
     str::FromStr,
 };
 
+use ahash::AHashMap;
 use regex::Captures;
 use serde::{de, de::IntoDeserializer};
 
@@ -500,7 +500,7 @@ impl fmt::Debug for ArgvMap {
 
         // This is a little crazy, but we want to group synonyms with
         // their keys and sort them for predictable output.
-        let reverse: HashMap<&String, &String> =
+        let reverse: AHashMap<&String, &String> =
             self.map.synonyms().map(|(from, to)| (to, from)).collect();
         let mut keys: Vec<&String> = self.map.keys().collect();
         keys.sort();

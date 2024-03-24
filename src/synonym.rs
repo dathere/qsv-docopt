@@ -1,17 +1,16 @@
 use std::{
-    collections::{
-        hash_map::{Iter, Keys},
-        HashMap,
-    },
+    collections::hash_map::{Iter, Keys},
     fmt::Debug,
     hash::Hash,
     mem,
 };
 
+use ahash::AHashMap;
+
 #[derive(Clone)]
 pub struct SynonymMap<K, V> {
-    vals: HashMap<K, V>,
-    syns: HashMap<K, K>,
+    vals: AHashMap<K, V>,
+    syns: AHashMap<K, K>,
 }
 
 impl<K: Eq + Hash, V> Default for SynonymMap<K, V> {
@@ -23,8 +22,8 @@ impl<K: Eq + Hash, V> Default for SynonymMap<K, V> {
 impl<K: Eq + Hash, V> SynonymMap<K, V> {
     pub fn new() -> SynonymMap<K, V> {
         SynonymMap {
-            vals: HashMap::new(),
-            syns: HashMap::new(),
+            vals: AHashMap::new(),
+            syns: AHashMap::new(),
         }
     }
 

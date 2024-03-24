@@ -9,11 +9,9 @@ mod parse;
 #[allow(dead_code)]
 mod synonym;
 
-use std::{
-    collections::HashMap,
-    io::{self, Read, Write},
-};
+use std::io::{self, Read, Write};
 
+use ahash::AHashMap;
 use regex::Regex;
 use serde::Deserialize;
 
@@ -67,7 +65,7 @@ fn run(args: &Args) -> Result<(), String> {
         .read_to_string(&mut usage)
         .map_err(|e| e.to_string())?;
     let parsed = Parser::new(&usage)?;
-    let arg_possibles: HashMap<String, Vec<String>> = args
+    let arg_possibles: AHashMap<String, Vec<String>> = args
         .arg_name
         .iter()
         .zip(args.arg_possibles.iter())
