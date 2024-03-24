@@ -28,35 +28,43 @@ impl<K: Eq + Hash, V> SynonymMap<K, V> {
         }
     }
 
+    #[inline]
     pub fn insert_synonym(&mut self, from: K, to: K) -> bool {
         assert!(self.vals.contains_key(&to));
         self.syns.insert(from, to).is_none()
     }
 
+    #[inline]
     pub fn keys(&self) -> Keys<'_, K, V> {
         self.vals.keys()
     }
 
+    #[inline]
     pub fn iter(&self) -> Iter<'_, K, V> {
         self.vals.iter()
     }
 
+    #[inline]
     pub fn synonyms(&self) -> Iter<'_, K, K> {
         self.syns.iter()
     }
 
+    #[inline]
     pub fn find(&self, k: &K) -> Option<&V> {
         self.with_key(k, |k| self.vals.get(k))
     }
 
+    #[inline]
     pub fn contains_key(&self, k: &K) -> bool {
         self.with_key(k, |k| self.vals.contains_key(k))
     }
 
+    #[inline]
     pub fn len(&self) -> usize {
         self.vals.len()
     }
 
+    #[inline]
     fn with_key<T, F>(&self, k: &K, with: F) -> T
     where
         F: FnOnce(&K) -> T,
@@ -70,14 +78,17 @@ impl<K: Eq + Hash, V> SynonymMap<K, V> {
 }
 
 impl<K: Eq + Hash + Clone, V> SynonymMap<K, V> {
+    #[inline]
     pub fn resolve(&self, k: &K) -> K {
         self.with_key(k, std::clone::Clone::clone)
     }
 
+    #[inline]
     pub fn get<'a>(&'a self, k: &K) -> &'a V {
         self.find(k).unwrap()
     }
 
+    #[inline]
     pub fn find_mut<'a>(&'a mut self, k: &K) -> Option<&'a mut V> {
         if self.syns.contains_key(k) {
             self.vals.get_mut(&self.syns[k])
@@ -86,6 +97,7 @@ impl<K: Eq + Hash + Clone, V> SynonymMap<K, V> {
         }
     }
 
+    #[inline]
     pub fn swap(&mut self, k: K, mut new: V) -> Option<V> {
         if self.syns.contains_key(&k) {
             let old = self.vals.get_mut(&k).unwrap();
@@ -96,6 +108,7 @@ impl<K: Eq + Hash + Clone, V> SynonymMap<K, V> {
         }
     }
 
+    #[inline]
     pub fn insert(&mut self, k: K, v: V) -> bool {
         self.swap(k, v).is_none()
     }

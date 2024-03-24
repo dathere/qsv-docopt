@@ -1034,6 +1034,7 @@ impl<'a> Argv<'a> {
             self.curi += 1;
         }
     }
+    #[inline]
     fn next_arg(&mut self, atom: &Atom) -> Result<&str, String> {
         let expected = format!("argument for flag '{atom}'");
         self.next_noeof(&expected)?;
@@ -1102,6 +1103,7 @@ impl MState {
         true
     }
 
+    #[inline]
     fn add_value(
         &mut self,
         opts: &Options,
@@ -1126,6 +1128,7 @@ impl MState {
         }
     }
 
+    #[inline]
     fn use_flag(&mut self, flag: &Atom) -> bool {
         match self.max_counts.entry(flag.clone()) {
             Vacant(v) => {
@@ -1147,6 +1150,7 @@ impl MState {
         }
     }
 
+    #[inline]
     fn use_optional_flag(&mut self, flag: &Atom) {
         match self.max_counts.entry(flag.clone()) {
             Vacant(v) => {
@@ -1158,6 +1162,7 @@ impl MState {
         }
     }
 
+    #[inline]
     fn match_cmd_or_posarg(&mut self, spec: &Atom, argv: &ArgvToken) -> Option<ArgvToken> {
         match (spec, &argv.atom) {
             (_, &Command(_)) => {
@@ -1220,6 +1225,7 @@ impl<'a, 'b> Matcher<'a, 'b> {
         self.argv.positional.get(state.argvi)
     }
 
+    #[inline]
     fn add_value(
         &self,
         state: &mut MState,
@@ -1231,12 +1237,14 @@ impl<'a, 'b> Matcher<'a, 'b> {
         state.add_value(opts, atom_spec, atom, arg)
     }
 
+    #[inline]
     fn add_flag_values(&self, state: &mut MState) {
         for tok in &self.argv.flags {
             self.add_value(state, &tok.atom, &tok.atom, &tok.arg);
         }
     }
 
+    #[inline]
     fn add_default_values(&self, state: &mut MState) {
         decl_regex! {
             SPLIT_SPACE: r"\s+";
@@ -1280,10 +1288,12 @@ impl<'a, 'b> Matcher<'a, 'b> {
         }
     }
 
+    #[inline]
     fn state_consumed_all_argv(&self, state: &MState) -> bool {
         self.argv.positional.len() == state.argvi
     }
 
+    #[inline]
     fn state_has_valid_flags(&self, state: &MState) -> bool {
         self.argv
             .counts
@@ -1291,6 +1301,7 @@ impl<'a, 'b> Matcher<'a, 'b> {
             .all(|flag| state.max_counts.contains_key(flag))
     }
 
+    #[inline]
     fn state_valid_num_flags(&self, state: &MState) -> bool {
         state
             .counts
@@ -1298,6 +1309,7 @@ impl<'a, 'b> Matcher<'a, 'b> {
             .all(|(flag, count)| count <= &state.max_counts[flag])
     }
 
+    #[inline]
     fn states(&self, pat: &Pattern, init: &MState) -> Vec<MState> {
         match *pat {
             Alternates(ref ps) => {
@@ -1420,6 +1432,7 @@ impl<'a, 'b> Matcher<'a, 'b> {
         }
     }
 
+    #[inline]
     fn all_option_states(&self, base: &MState, states: &mut Vec<MState>, pats: &[&Pattern]) {
         if pats.is_empty() {
             states.push(base.clone());
