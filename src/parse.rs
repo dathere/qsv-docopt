@@ -160,10 +160,7 @@ impl Parser {
             self.parse_desc(line)?;
         }
 
-        let mprog = format!(
-            "^(?:{})?\\s*(.*?)\\s*$",
-            regex::escape(prog)
-        );
+        let mprog = format!("^(?:{})?\\s*(.*?)\\s*$", regex::escape(prog));
         let pats = Regex::new(&mprog).unwrap();
 
         let pats_str = cap_or_empty(&caps, "pats");
@@ -295,13 +292,7 @@ impl Parser {
         Ok(())
     }
 
-    fn add_desc(
-        &mut self,
-        short: &str,
-        long: &str,
-        has_arg: bool,
-        repeated: bool,
-    ) {
+    fn add_desc(&mut self, short: &str, long: &str, has_arg: bool, repeated: bool) {
         assert!(!short.is_empty() || !long.is_empty());
         if !short.is_empty() && short.chars().count() != 2 {
             // It looks like the reference implementation just ignores
