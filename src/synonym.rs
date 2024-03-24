@@ -5,7 +5,6 @@ use std::{
     },
     fmt::Debug,
     hash::Hash,
-    iter::{FromIterator, IntoIterator},
     mem,
 };
 
