@@ -53,7 +53,7 @@ fn main() {
         .and_then(|d| d.deserialize())
         .unwrap_or_else(|e| e.exit());
     match run(&args) {
-        Ok(_) => {}
+        Ok(()) => {}
         Err(err) => {
             write!(&mut io::stderr(), "{err}").unwrap();
             ::std::process::exit(1)
