@@ -398,7 +398,7 @@ impl<'a> PatParser<'a> {
                 "-" | "--" => {
                     // As per specification, `-` and `--` by themselves are
                     // just commands that should be interpreted conventionally.
-                    seq.push(self.command()?);
+                    seq.push(self.command());
                 }
                 "|" => {
                     if seq.is_empty() {
@@ -458,9 +458,9 @@ impl<'a> PatParser<'a> {
                         // These are always positional.
                         // Arguments for -s and --short are picked up
                         // when parsing flags.
-                        seq.push(self.positional()?);
+                        seq.push(self.positional());
                     } else if Atom::is_cmd(self.cur()) {
-                        seq.push(self.command()?);
+                        seq.push(self.command());
                     } else {
                         err!("Unknown token type '{}'.", self.cur())
                     }
@@ -561,18 +561,18 @@ impl<'a> PatParser<'a> {
         Ok(())
     }
 
-    fn command(&mut self) -> Result<Pattern, String> {
+    fn command(&mut self) -> Pattern {
         let atom = Atom::new(self.cur());
         self.add_atom_ifnotexists(Zero, &atom);
         self.next();
-        Ok(self.maybe_repeat(PatAtom(atom)))
+        self.maybe_repeat(PatAtom(atom))
     }
 
-    fn positional(&mut self) -> Result<Pattern, String> {
+    fn positional(&mut self) -> Pattern {
         let atom = Atom::new(self.cur());
         self.add_atom_ifnotexists(Zero, &atom);
         self.next();
-        Ok(self.maybe_repeat(PatAtom(atom)))
+        self.maybe_repeat(PatAtom(atom))
     }
 
     fn add_atom_ifnotexists(&mut self, arg: Argument, atom: &Atom) {
