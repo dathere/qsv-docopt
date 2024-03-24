@@ -1,6 +1,6 @@
 [package]
 name = "qsv_docopt"
-version = "1.6.0" #:version
+version = "1.7.0" #:version
 authors = [
     "Andrew Gallant <jamslam@gmail.com>",
     "Joel Natividad <joel@datHere.com>",
