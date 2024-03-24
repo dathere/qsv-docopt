@@ -136,8 +136,8 @@ impl Parser {
             err!("Could not find program name in doc string.")
         }
 
-        self.program = prog.to_owned();
-        self.usage = caps.get(0).unwrap().as_str().to_owned();
+        prog.clone_into(&mut self.program);
+        caps.get(0).unwrap().as_str().clone_into(&mut self.usage);
 
         // Before we parse the usage patterns, we look for option descriptions.
         // We do this because the information in option descriptions can be
