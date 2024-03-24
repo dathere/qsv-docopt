@@ -502,9 +502,8 @@ impl<'a> PatParser<'a> {
                 // We either error'd or consumed the rest of the short stack as
                 // an argument.
                 break;
-            } else {
-                self.add_atom_ifnotexists(Zero, &atom);
             }
+            self.add_atom_ifnotexists(Zero, &atom);
         }
         self.next();
         // This is a little weird. We've got to manually look for a repeat
@@ -956,9 +955,8 @@ impl<'a> Argv<'a> {
                         // We've either produced an error or gobbled up the
                         // rest of these stacked short flags, so stop.
                         break;
-                    } else {
-                        self.flags.push(tok);
                     }
+                    self.flags.push(tok);
                 }
             } else if do_flags && Atom::is_long_argv(current_arg) {
                 let (atom, mut arg) = parse_long_equal_argv(current_arg);
@@ -1026,9 +1024,8 @@ impl<'a> Argv<'a> {
         }
         if best.is_empty() {
             err!("Unknown flag: '{}'", &atom);
-        } else {
-            err!("Unknown flag: '{}'. Did you mean '{}'?", &atom, &best)
         }
+        err!("Unknown flag: '{}'. Did you mean '{}'?", &atom, &best)
     }
 
     fn cur(&self) -> &str {
