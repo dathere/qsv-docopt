@@ -740,12 +740,7 @@ impl Pattern {
                         }
                     }
                 }
-                Sequence(ref ps) => {
-                    for p in ps {
-                        dotag(p, rep, map, seen);
-                    }
-                }
-                Optional(ref ps) => {
+                Sequence(ref ps) | Optional(ref ps) => {
                     for p in ps {
                         dotag(p, rep, map, seen);
                     }
