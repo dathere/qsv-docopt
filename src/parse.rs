@@ -978,10 +978,9 @@ impl<'a> Argv<'a> {
     }
 
     fn err_unknown_flag(&self, atom: &Atom) -> Result<(), String> {
-        use std::usize::MAX;
         let mut best = String::new();
         let flag = atom.to_string();
-        let mut min = MAX;
+        let mut min = usize::MAX;
 
         let mut possibles = Vec::new();
 
