@@ -7,15 +7,15 @@ authors = [
 ]
 description = "Command line argument parsing."
 documentation = "https://docs.rs/qsv_docopt"
-homepage = "https://github.com/jqnatividad/docopt.rs"
-repository = "https://github.com/jqnatividad/docopt.rs"
+homepage = "https://github.com/dathere/qsv-docopt"
+repository = "https://github.com/dathere/qsv-docopt"
 readme = "README.md"
 keywords = ["docopt", "argument", "command", "argv"]
 categories = ["command-line-interface"]
 license = "Unlicense/MIT"
 exclude = ["/Makefile", "/scripts/*"]
 edition = "2021"
-rust-version = "1.77.0"
+rust-version = "1.81.0"
 
 [lib]
 name = "qsv_docopt"
