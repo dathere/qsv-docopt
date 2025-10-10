@@ -386,7 +386,7 @@ impl ArgvMap {
     /// Finds the value corresponding to `key` and calls `as_bool()` on it.
     /// If the key does not exist, `false` is returned.
     pub fn get_bool(&self, key: &str) -> bool {
-        self.find(key).map_or(false, Value::as_bool)
+        self.find(key).is_some_and(Value::as_bool)
     }
 
     /// Finds the value corresponding to `key` and calls `as_count()` on it.
@@ -733,7 +733,7 @@ macro_rules! deserialize_num {
     };
 }
 
-impl<'a, 'de> ::serde::Deserializer<'de> for &'a mut Deserializer<'de> {
+impl<'de> ::serde::Deserializer<'de> for &mut Deserializer<'de> {
     type Error = Error;
 
     fn deserialize_any<V>(self, _visitor: V) -> Result<V::Value>
@@ -821,7 +821,7 @@ impl<'a, 'de> ::serde::Deserializer<'de> for &'a mut Deserializer<'de> {
     {
         let is_some = match self.stack.last() {
             None => derr!("Could not deserialize value into unknown key."),
-            Some(it) => it.val.as_ref().map_or(false, Value::as_bool),
+            Some(it) => it.val.as_ref().is_some_and(Value::as_bool),
         };
         if is_some {
             visitor.visit_some(self)

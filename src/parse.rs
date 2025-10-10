@@ -232,14 +232,13 @@ impl Parser {
                 }
                 long = l.into();
             }
-            if let Some(arg) = flags.name("arg").map(|m| m.as_str()) {
-                if !arg.is_empty() {
+            if let Some(arg) = flags.name("arg").map(|m| m.as_str())
+                && !arg.is_empty() {
                     if !Atom::is_arg(arg) {
                         err!("Argument '{arg}' is not of the form ARG or <arg>.")
                     }
                     has_arg = true; // may be changed to default later
                 }
-            }
         }
         // Make sure that we consumed everything. If there are leftovers,
         // then there is some malformed description. Alert the user.
