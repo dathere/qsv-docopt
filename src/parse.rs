@@ -82,12 +82,11 @@ impl Parser {
         Ok(d)
     }
 
-    #[must_use] 
+    #[must_use]
     pub fn matches(&self, argv: &Argv<'_>) -> Option<SynonymMap<String, Value>> {
         for usage in &self.usages {
-            match Matcher::matches(argv, usage) {
-                None => continue,
-                Some(vals) => return Some(vals),
+            if let Some(vals) = Matcher::matches(argv, usage) {
+                return Some(vals);
             }
         }
         None
@@ -125,9 +124,8 @@ impl Parser {
         decl_regex! {
             MUSAGE: r"(?s)(?i:usage):\s*(?P<prog>\S+)(?P<pats>.*?)(?:$|\n\s*\n)";
         }
-        let caps = match MUSAGE.captures(doc) {
-            None => err!("Could not find usage patterns in doc string."),
-            Some(caps) => caps,
+        let Some(caps) = MUSAGE.captures(doc) else {
+            err!("Could not find usage patterns in doc string.")
         };
 
         let prog = cap_or_empty(&caps, "prog");
@@ -266,11 +264,8 @@ impl Parser {
             None => return Ok(()),
             Some(c) => cap_or_empty(&c, "val").trim(),
         };
-        let last_atom = match self.last_atom_added {
-            None => {
-                err!("Found default value '{defval}' in '{desc}' before first option description.")
-            }
-            Some(ref atom) => atom,
+        let Some(ref last_atom) = self.last_atom_added else {
+            err!("Found default value '{defval}' in '{desc}' before first option description.")
         };
         let opts = self
             .descs
@@ -756,7 +751,7 @@ impl Pattern {
 }
 
 impl Atom {
-    #[must_use] 
+    #[must_use]
     pub fn new(s: &str) -> Atom {
         if Atom::is_short(s) {
             Short(s[1..].chars().next().unwrap())
@@ -1404,13 +1399,11 @@ impl<'a> Matcher<'a, '_> {
                         }
                     }
                     Command(_) | Positional(_) => {
-                        let tok = match self.token_from(init) {
-                            None => return vec![],
-                            Some(tok) => tok,
+                        let Some(tok) = self.token_from(init) else {
+                            return vec![];
                         };
-                        let tok = match state.match_cmd_or_posarg(atom, tok) {
-                            None => return vec![],
-                            Some(tok) => tok,
+                        let Some(tok) = state.match_cmd_or_posarg(atom, tok) else {
+                            return vec![];
                         };
                         if !self.add_value(&mut state, atom, &tok.atom, &tok.arg) {
                             return vec![];

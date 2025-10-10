@@ -92,7 +92,7 @@ impl Error {
     /// Non-fatal errors include requests to print the help or version
     /// information of a program, while fatal errors include those such as
     /// failing to decode or parse.
-    #[must_use] 
+    #[must_use]
     pub fn fatal(&self) -> bool {
         match *self {
             Help | Version(..) => false,
@@ -262,7 +262,7 @@ impl Docopt {
     /// position arguments. That is, after the first position argument is
     /// seen, all proceeding arguments are interpreted as positional
     /// arguments unconditionally.
-    #[must_use] 
+    #[must_use]
     pub const fn options_first(mut self, yes: bool) -> Docopt {
         self.options_first = yes;
         self
@@ -278,7 +278,7 @@ impl Docopt {
     /// Note that for this to work, `--help` must be a valid pattern.
     ///
     /// When disabled, there is no special handling of `--help`.
-    #[must_use] 
+    #[must_use]
     pub const fn help(mut self, yes: bool) -> Docopt {
         self.help = yes;
         self
@@ -293,14 +293,14 @@ impl Docopt {
     ///
     /// When disabled (a `None` value), there is no special handling of
     /// `--version`.
-    #[must_use] 
+    #[must_use]
     pub fn version(mut self, version: Option<String>) -> Docopt {
         self.version = version;
         self
     }
 
     #[doc(hidden)]
-    #[must_use] 
+    #[must_use]
     pub const fn parser(&self) -> &Parser {
         &self.p
     }
@@ -416,13 +416,13 @@ impl ArgvMap {
     ///
     /// `key` should be a string in the traditional Docopt format. e.g.,
     /// `<arg>` or `--flag`.
-    #[must_use] 
+    #[must_use]
     pub fn find(&self, key: &str) -> Option<&Value> {
         self.map.find(&key.into())
     }
 
     /// Return the number of values, not including synonyms.
-    #[must_use] 
+    #[must_use]
     pub fn len(&self) -> usize {
         self.map.len()
     }
@@ -564,7 +564,7 @@ impl Value {
     /// Counted repetitions are `false` if `0` and `true` otherwise.
     /// Plain strings are `true` if present and `false` otherwise.
     /// Lists are `true` if non-empty and `false` otherwise.
-    #[must_use] 
+    #[must_use]
     pub fn as_bool(&self) -> bool {
         match *self {
             Switch(b) => b,
@@ -580,7 +580,7 @@ impl Value {
     /// Booleans are `1` if `true` and `0` otherwise.
     /// Plain strings are `1` if present and `0` otherwise.
     /// Lists correspond to its length.
-    #[must_use] 
+    #[must_use]
     pub fn as_count(&self) -> u64 {
         match *self {
             Switch(b) => u64::from(b), // if b { 1 } else { 0 },
@@ -594,7 +594,7 @@ impl Value {
     /// Returns the value as a string.
     ///
     /// All values return an empty string except for a non-empty plain string.
-    #[must_use] 
+    #[must_use]
     pub fn as_str(&self) -> &str {
         match *self {
             Switch(_) | Counted(_) | Plain(None) | List(_) => "",
@@ -606,7 +606,7 @@ impl Value {
     ///
     /// Booleans, repetitions and empty strings correspond to an empty list.
     /// Plain strings correspond to a list of length `1`.
-    #[must_use] 
+    #[must_use]
     pub fn as_vec(&self) -> Vec<&str> {
         match *self {
             Switch(_) | Counted(_) | Plain(None) => vec![],

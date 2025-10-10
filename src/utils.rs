@@ -5,7 +5,7 @@ pub struct RegexWrap(&'static str, ::std::sync::OnceLock<::regex::Regex>);
 
 impl RegexWrap {
     /// Create a new const instances with the given regexp
-    #[must_use] 
+    #[must_use]
     pub const fn new(re: &'static str) -> Self {
         Self(re, ::std::sync::OnceLock::<::regex::Regex>::new())
     }
@@ -37,7 +37,7 @@ macro_rules! werr(
 
 /// return the value of a capture group or an empty string
 #[inline]
-#[must_use] 
+#[must_use]
 pub fn cap_or_empty<'t>(caps: &regex::Captures<'t>, name: &str) -> &'t str {
     caps.name(name).map_or("", |m| m.as_str())
 }
