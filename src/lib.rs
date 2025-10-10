@@ -45,6 +45,15 @@
 //! provides a `Decoder` that converts an `ArgvMap` to your custom struct.
 //! Here is the same example as above using type based decoding:
 //!
+//! ## Non-UTF-8 Arguments
+//!
+//! **Note:** This library uses `std::env::args_os()` internally with lossy
+//! UTF-8 conversion. This means that non-UTF-8 command-line arguments (rare
+//! on most systems) will be converted to the Unicode replacement character (�).
+//! If you need to preserve exact non-UTF-8 byte sequences, you'll need to
+//! handle `std::env::args_os()` directly in your application before calling
+//! docopt.
+//!
 //! ```rust
 //! # fn main() {
 //! use qsv_docopt::Docopt;

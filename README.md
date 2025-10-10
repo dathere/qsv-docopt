@@ -93,6 +93,17 @@ FILE          => arg_FILE
 build         => cmd_build
 ```
 
+## Non-UTF-8 Arguments
+
+**Note:** This library uses `std::env::args_os()` internally with lossy UTF-8
+conversion to avoid panicking on non-UTF-8 arguments. This means that non-UTF-8
+command-line arguments (rare on most systems) will be converted to the Unicode
+replacement character (�). 
+
+If you need to preserve exact non-UTF-8 byte sequences in your arguments, you
+should handle `std::env::args_os()` directly in your application before passing
+arguments to docopt via the `.argv()` method.
+
 ## Traditional Docopt API
 
 The reference implementation of Docopt returns a Python dictionary with names
