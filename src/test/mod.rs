@@ -159,5 +159,51 @@ fn test_unit_struct() {
     assert!(dopt.is_ok());
 }
 
+#[test]
+#[cfg(unix)]
+fn test_non_utf8_args_lossy_conversion() {
+    use std::os::unix::ffi::OsStringExt;
+
+    const USAGE: &str = "
+    Usage:
+        prog <input> <output>
+    ";
+
+    #[derive(Deserialize, Debug)]
+    struct Args {
+        arg_input:  String,
+        arg_output: String,
+    }
+
+    // Create an OsString with invalid UTF-8 bytes
+    let invalid_utf8_input = std::ffi::OsString::from_vec(vec![0xFF, 0xFE, 0xFD]);
+    let valid_output = std::ffi::OsString::from("output.txt");
+
+    // Convert to strings as the library would do internally
+    let input_str = invalid_utf8_input.to_string_lossy().into_owned();
+    let output_str = valid_output.to_string_lossy().into_owned();
+
+    // Verify that lossy conversion produces the replacement character
+    assert!(
+        input_str.contains('�'),
+        "Non-UTF-8 should convert to replacement character"
+    );
+
+    // Test that the library handles these arguments without panicking
+    let argv = vec!["prog", &input_str, &output_str];
+    let args: Args = Docopt::new(USAGE)
+        .unwrap()
+        .argv(&argv)
+        .deserialize()
+        .unwrap();
+
+    // The converted string will contain the Unicode replacement character
+    assert_eq!(args.arg_input, input_str);
+    assert_eq!(args.arg_output, "output.txt");
+
+    // Verify the replacement character is present in the converted input
+    assert!(args.arg_input.contains('�'));
+}
+
 mod suggestions;
 mod testcases;
