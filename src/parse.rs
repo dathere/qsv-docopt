@@ -82,6 +82,7 @@ impl Parser {
         Ok(d)
     }
 
+    #[must_use] 
     pub fn matches(&self, argv: &Argv<'_>) -> Option<SynonymMap<String, Value>> {
         for usage in &self.usages {
             match Matcher::matches(argv, usage) {
@@ -755,6 +756,7 @@ impl Pattern {
 }
 
 impl Atom {
+    #[must_use] 
     pub fn new(s: &str) -> Atom {
         if Atom::is_short(s) {
             Short(s[1..].chars().next().unwrap())
@@ -1037,7 +1039,7 @@ impl<'a> Argv<'a> {
     }
 }
 
-impl<'a> fmt::Debug for Argv<'a> {
+impl fmt::Debug for Argv<'_> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> Result<(), fmt::Error> {
         writeln!(f, "Positional: {:?}", self.positional)?;
         writeln!(f, "Flags: {:?}", self.flags)?;
@@ -1176,7 +1178,7 @@ impl MState {
     }
 }
 
-impl<'a, 'b> Matcher<'a, 'b> {
+impl<'a> Matcher<'a, '_> {
     fn matches(argv: &'a Argv<'_>, pat: &Pattern) -> Option<SynonymMap<String, Value>> {
         let m = Matcher { argv };
         let init = MState {
