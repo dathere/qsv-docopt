@@ -945,13 +945,15 @@ impl<'a> Argv<'a> {
                 if !self.dopt.descs.contains_key(&atom) {
                     return self.err_unknown_flag(&atom);
                 }
-                if arg.is_some() && !self.dopt.has_arg(&atom) {
-                    err!(
-                        "Flag '{}' cannot have an argument, but found '{}'.",
-                        &atom,
-                        arg.as_ref().unwrap()
-                    )
-                } else if arg.is_none() && self.dopt.has_arg(&atom) {
+                if let Some(arg_value) = &arg {
+                    if !self.dopt.has_arg(&atom) {
+                        err!(
+                            "Flag '{}' cannot have an argument, but found '{}'.",
+                            &atom,
+                            arg_value
+                        )
+                    }
+                } else if self.dopt.has_arg(&atom) {
                     self.next_noeof(&format!("argument for flag '{}'", &atom))?;
                     arg = Some(self.cur().into());
                 }
