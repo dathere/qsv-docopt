@@ -314,8 +314,12 @@ impl Docopt {
     }
 
     fn get_argv() -> Vec<String> {
-        // Hmm, we should probably handle a Unicode decode error here... ---AG
-        ::std::env::args().skip(1).collect()
+        // Use args_os() to avoid panicking on non-UTF-8 arguments.
+        // Non-UTF-8 sequences are converted to the Unicode replacement character.
+        ::std::env::args_os()
+            .skip(1)
+            .map(|s| s.to_string_lossy().into_owned())
+            .collect()
     }
 }
 
