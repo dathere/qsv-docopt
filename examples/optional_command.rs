@@ -8,8 +8,8 @@ use std::fmt;
 
 use qsv_docopt::Docopt;
 use serde::{
-    de::{Deserializer, Error, Visitor},
     Deserialize,
+    de::{Deserializer, Error, Visitor},
 };
 
 // Write the Docopt usage string.
