@@ -34,6 +34,8 @@ fn main() {
     if let Some(arg) = args.get(1) {
         if arg == "-" {
             std::io::stdin().read_to_string(&mut passed_usage).unwrap();
+            println!("{}", get_options(passed_usage.clone()).join(", "));
+            return;
         } else if arg == "qsv" {
             let qsv_list = String::from_utf8(
                 std::process::Command::new("qsv")
@@ -66,13 +68,8 @@ fn main() {
                 println!("=====================");
             }
         }
-    } else {
-        let docopt = Docopt::new(passed_usage).unwrap();
-        let parser = docopt.parser();
-        let descs = parser.descs.clone();
-        let descs: Vec<String> = descs.keys().map(|k| k.to_string()).collect();
-        println!("{descs:#?}");
     }
+    println!("{}", get_options(passed_usage).join(", "));
 }
 
 fn get_options(usage: String) -> Vec<String> {
