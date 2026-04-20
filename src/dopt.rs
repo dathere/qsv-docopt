@@ -855,8 +855,11 @@ impl<'de> ::serde::Deserializer<'de> for &mut Deserializer<'de> {
     where
         V: de::Visitor<'de>,
     {
-        // I don't know what the right thing is here, so just fail for now.
-        panic!("I don't know how to read into a nil value.")
+        // Docopt values are always a boolean, count, string, or list of
+        // strings — none of those map meaningfully to `()`. Return a
+        // Deserialize error so the caller gets a `Result` to handle rather
+        // than an unwind-at-random-depth panic.
+        derr!("Cannot deserialize a Docopt value into `()` (unit type).")
     }
 
     fn deserialize_unit_struct<V>(self, _name: &'static str, visitor: V) -> Result<V::Value>
