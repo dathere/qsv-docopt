@@ -11,7 +11,7 @@ fn get_args(doc: &str, argv: &[&'static str]) -> ArgvMap {
         Err(err) => panic!("Invalid usage: {}", err),
         Ok(dopt) => dopt,
     };
-    match dopt.argv(vec!["cmd"].iter().chain(argv.iter())).parse() {
+    match dopt.argv(["cmd"].iter().chain(argv.iter())).parse() {
         Err(err) => panic!("{}", err),
         Ok(vals) => vals,
     }
@@ -89,6 +89,7 @@ fn regression_issue_12() {
     ";
 
     #[derive(Deserialize, Debug)]
+    #[allow(dead_code)]
     struct Args {
         arg_file:      String,
         cmd_info:      bool,
@@ -99,7 +100,7 @@ fn regression_issue_12() {
 
     let dopt: Args = Docopt::new(USAGE)
         .unwrap()
-        .argv(&["whisper", "mark", "./p/blah", "100"])
+        .argv(["whisper", "mark", "./p/blah", "100"])
         .deserialize()
         .unwrap();
     assert_eq!(dopt.arg_timestamp, 0);
