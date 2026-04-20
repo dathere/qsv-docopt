@@ -98,8 +98,10 @@ impl<K: Eq + Hash + Clone, V> SynonymMap<K, V> {
 
     #[inline]
     pub fn swap(&mut self, k: K, mut new: V) -> Option<V> {
-        if self.syns.contains_key(&k) {
-            let old = self.vals.get_mut(&k).unwrap();
+        // If `k` is a registered synonym, the stored value lives under the
+        // canonical key in `self.vals`, not under the synonym itself.
+        if let Some(canonical) = self.syns.get(&k).cloned() {
+            let old = self.vals.get_mut(&canonical).unwrap();
             mem::swap(old, &mut new);
             Some(new)
         } else {
