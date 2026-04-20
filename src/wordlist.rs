@@ -1,24 +1,12 @@
-#[macro_use]
-mod utils;
-use self::utils::cap_or_empty;
-
-#[allow(dead_code)]
-mod dopt;
-#[allow(dead_code)]
-mod parse;
-#[allow(dead_code)]
-mod synonym;
-
 use std::io::{self, Read, Write};
 
 use ahash::AHashMap;
-use regex::Regex;
-use serde::Deserialize;
-
-use crate::{
-    dopt::Docopt,
+use qsv_docopt::{
+    Docopt,
     parse::{Atom, Parser},
 };
+use regex::Regex;
+use serde::Deserialize;
 
 const USAGE: &str = "
 Usage: docopt-wordlist [(<name> <possibles>)] ...
