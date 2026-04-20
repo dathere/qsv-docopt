@@ -704,6 +704,19 @@ be one of `cmd_`, `flag_` or `arg_`.",
         Ok(v)
     }
 
+    // Coerce a value to a numeric type.
+    //
+    // NOTE: an absent-but-present value (empty string) is silently coerced
+    // to `0`, not reported as a Deserialize error. This preserves long-
+    // standing behavior: it lets user structs declare, for example,
+    // `arg_count: u32` for an optional positional without having to wrap
+    // it in `Option<u32>`. A missing argument becomes `0` rather than
+    // aborting the whole deserialize.
+    //
+    // The trade-off is that callers cannot distinguish "argument was `0`"
+    // from "argument was absent". If you need that distinction, declare
+    // the field as `Option<T>` — `deserialize_option` routes through
+    // `as_bool` and will produce `None` for an absent value.
     fn pop_number<T>(&mut self, expect: &str) -> Result<T>
     where
         T: FromStr + ToString,
@@ -715,7 +728,7 @@ be one of `cmd_`, `flag_` or `arg_`.",
         } else {
             let vstr = v.as_str();
             if vstr.trim().is_empty() {
-                Ok("0".parse().unwrap()) // lol
+                Ok("0".parse().unwrap())
             } else {
                 match vstr.parse() {
                     Err(_) => {
