@@ -1,4 +1,7 @@
-use std::io::{self, Read, Write};
+use std::{
+    io::{self, Read, Write},
+    sync::OnceLock,
+};
 
 use ahash::AHashMap;
 use qsv_docopt::{
@@ -7,6 +10,11 @@ use qsv_docopt::{
 };
 use regex::Regex;
 use serde::Deserialize;
+
+fn possibles_splitter() -> &'static Regex {
+    static RE: OnceLock<Regex> = OnceLock::new();
+    RE.get_or_init(|| Regex::new(r"[ \t]+").unwrap())
+}
 
 const USAGE: &str = "
 Usage: docopt-wordlist [(<name> <possibles>)] ...
@@ -58,8 +66,7 @@ fn run(args: &Args) -> Result<(), String> {
         .iter()
         .zip(args.arg_possibles.iter())
         .map(|(name, possibles)| {
-            let choices = Regex::new(r"[ \t]+")
-                .unwrap()
+            let choices = possibles_splitter()
                 .split(possibles)
                 .map(std::string::ToString::to_string)
                 .collect::<Vec<String>>();
