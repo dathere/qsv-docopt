@@ -431,6 +431,12 @@ impl ArgvMap {
         self.map.len()
     }
 
+    /// Return true if there are no matched values (excluding synonyms).
+    #[must_use]
+    pub fn is_empty(&self) -> bool {
+        self.map.len() == 0
+    }
+
     /// Converts a Docopt key to a struct field name.
     /// This makes a half-hearted attempt at making the key a valid struct
     /// field name (like replacing `-` with `_`), but it does not otherwise
@@ -505,7 +511,7 @@ impl ArgvMap {
 
 impl fmt::Debug for ArgvMap {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        if self.len() == 0 {
+        if self.is_empty() {
             return write!(f, "{{EMPTY}}");
         }
 
@@ -698,7 +704,7 @@ be one of `cmd_`, `flag_` or `arg_`.",
         Ok(v)
     }
 
-    fn to_number<T>(&mut self, expect: &str) -> Result<T>
+    fn pop_number<T>(&mut self, expect: &str) -> Result<T>
     where
         T: FromStr + ToString,
         <T as FromStr>::Err: Debug,
@@ -721,7 +727,7 @@ be one of `cmd_`, `flag_` or `arg_`.",
         }
     }
 
-    fn to_float(&mut self, expect: &str) -> Result<f64> {
+    fn pop_float(&mut self, expect: &str) -> Result<f64> {
         let (k, v) = self.pop_key_val()?;
         if let Counted(n) = v {
             Ok(n as f64)
@@ -743,7 +749,7 @@ macro_rules! deserialize_num {
         where
             V: de::Visitor<'de>,
         {
-            visitor.$method(self.to_number::<$ty>(stringify!($ty)).map(|n| n as $ty)?)
+            visitor.$method(self.pop_number::<$ty>(stringify!($ty)).map(|n| n as $ty)?)
         }
     };
 }
@@ -779,14 +785,14 @@ impl<'de> ::serde::Deserializer<'de> for &mut Deserializer<'de> {
     where
         V: de::Visitor<'de>,
     {
-        visitor.visit_f32(self.to_float("f32").map(|n| n as f32)?)
+        visitor.visit_f32(self.pop_float("f32").map(|n| n as f32)?)
     }
 
     fn deserialize_f64<V>(self, visitor: V) -> Result<V::Value>
     where
         V: de::Visitor<'de>,
     {
-        visitor.visit_f64(self.to_float("f64")?)
+        visitor.visit_f64(self.pop_float("f64")?)
     }
 
     fn deserialize_char<V>(self, visitor: V) -> Result<V::Value>

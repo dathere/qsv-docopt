@@ -7,7 +7,7 @@ fn get_suggestion(doc: &str, argv: &[&'static str]) -> Error {
     };
     let mut argv: Vec<_> = argv.iter().map(|x| x.to_string()).collect();
     argv.insert(0, "prog".to_string());
-    match dopt.argv(argv.into_iter()).parse() {
+    match dopt.argv(argv).parse() {
         Err(err) => err,
         Ok(_) => panic!("Should have been a user error"),
     }
