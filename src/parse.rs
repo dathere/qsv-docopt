@@ -1436,6 +1436,12 @@ impl<'a> Matcher<'a, '_> {
 // Tries to parse a long flag of the form '--flag[=arg]' and returns a tuple
 // with the flag atom and whether there is an argument or not.
 // If '=arg' exists and 'arg' isn't a valid argument, an error is returned.
+//
+// NOTE: the arg capture uses `.+`. In a usage string, `--flag=` with no value
+// after `=` is malformed and must not match here — the caller treats a
+// no-match as "no argument" and falls through to `Atom::new(flag)`, which
+// would then reject the trailing `=`. See `parse_long_equal_argv` for the
+// more permissive argv-side counterpart.
 fn parse_long_equal(flag: &str) -> Result<(Atom, Argument), String> {
     decl_regex! {
         LONG_EQUAL: "^(?P<name>[^=]+)=(?P<arg>.+)$";
@@ -1451,6 +1457,10 @@ fn parse_long_equal(flag: &str) -> Result<(Atom, Argument), String> {
     }
 }
 
+// Argv-side counterpart to `parse_long_equal`. The arg capture uses `.*`
+// (not `.+`) so that `--flag=` on the command line is accepted and produces
+// an empty-string argument; rejecting empty values is left to validation
+// later in the pipeline rather than to the regex itself.
 fn parse_long_equal_argv(flag: &str) -> (Atom, Option<String>) {
     decl_regex! {
         LONG_EQUAL: "^(?P<name>[^=]+)=(?P<arg>.*)$";
