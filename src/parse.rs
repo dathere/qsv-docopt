@@ -34,7 +34,6 @@
 //   - Write a specification for Docopt.
 
 use std::{
-    cmp::Ordering,
     collections::hash_map::Entry::{Occupied, Vacant},
     fmt,
 };
@@ -616,8 +615,7 @@ enum Pattern {
     PatAtom(Atom),
 }
 
-#[allow(clippy::derive_ord_xor_partial_ord)]
-#[derive(PartialEq, Eq, Ord, Hash, Clone, Debug)]
+#[derive(PartialEq, Eq, Ord, PartialOrd, Hash, Clone, Debug)]
 pub enum Atom {
     Short(char),
     Long(String),
@@ -805,22 +803,6 @@ impl Atom {
         IS_CMD_RE.is_match(s)
     }
 
-    // NOTE: NO LONGER NEEDED WHEN WE SIMPLIFIED partial_cmp
-    // Assigns an integer to each variant of Atom. (For easier sorting.)
-    // const fn type_as_usize(&self) -> usize {
-    //     match *self {
-    //         Short(_) => 0,
-    //         Long(_) => 1,
-    //         Command(_) => 2,
-    //         Positional(_) => 3,
-    //     }
-    // }
-}
-
-impl PartialOrd for Atom {
-    fn partial_cmp(&self, other: &Atom) -> Option<Ordering> {
-        Some(self.cmp(other))
-    }
 }
 
 impl fmt::Display for Atom {
